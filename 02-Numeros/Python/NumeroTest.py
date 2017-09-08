@@ -51,13 +51,22 @@ class Entero(Numero):
             return False
         
     def __add__(self,sumando):
-        return Entero(self._valor+sumando.valor())
+        if isinstance(sumando, self.__class__):
+            return Entero(self._valor+sumando.valor())
+        else:
+            return Fraccion(Entero(self._valor * sumando.denominador().valor() + sumando.numerador().valor()), sumando.denominador())
  
     def __mul__(self,factor):
-        return Entero(self._valor*factor.valor())
+        if isinstance(factor, self.__class__):
+            return Entero(self._valor*factor.valor())
+        else:
+            return Fraccion(self * factor.numerador(), factor.denominador())
          
     def __div__(self,divisor):
-        return divisor.dividirEntero(self)
+        if isinstance(divisor, self.__class__):
+            return divisor.dividirEntero(self)
+        else:
+            return self * (divisor.denominador() / divisor.numerador())
         
     def dividirEntero(self,dividendo):
         if self.esCero():
@@ -114,18 +123,27 @@ class Fraccion(Numero):
             return False
         
     def __add__(self,sumando):
-        nuevoDenominador = self._denominador * sumando.denominador()
-        primerSumando = self._numerador * sumando.denominador()
-        segundoSumando = self._denominador * sumando.numerador()
-        nuevoNumerador = primerSumando + segundoSumando
-        
-        return nuevoNumerador / nuevoDenominador
+        if isinstance(sumando, self.__class__):
+            nuevoDenominador = self._denominador * sumando.denominador()
+            primerSumando = self._numerador * sumando.denominador()
+            segundoSumando = self._denominador * sumando.numerador()
+            nuevoNumerador = primerSumando + segundoSumando
+
+            return nuevoNumerador / nuevoDenominador
+        else:
+            return sumando + self
   
     def __mul__(self,factor):
-        return (self._numerador * factor.numerador()) / (self._denominador * factor.denominador())
+        if isinstance(factor, self.__class__):
+            return (self._numerador * factor.numerador()) / (self._denominador * factor.denominador())
+        else:
+            return factor * self
             
     def __div__(self,divisor):
-        return divisor.dividirFraccion(self)
+        if isinstance(divisor, self.__class__):
+            return divisor.dividirFraccion(self)
+        else:
+            return Fraccion(self._numerador, self._denominador * divisor)
     
     def dividirFraccion(self,dividendo):
         return (dividendo.numerador() * self._denominador) / (dividendo.denominador () * self._numerador)
