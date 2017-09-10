@@ -68,11 +68,14 @@ class Entero(Numero):
     def multiplicarFraccion(self, factor):
         return (self * factor.numerador()) / factor.denominador()
 
-    def __div__(self,divisor):
-        if isinstance(divisor, self.__class__):
-            return divisor.dividirEntero(self)
-        else:
-            return self * (divisor.denominador() / divisor.numerador())
+    def __div__(self, divisor):
+        return divisor.dividiendoEntero(self)
+
+    def dividiendoEntero(self, dividendo):
+        return self.dividirEntero(dividendo)
+
+    def dividiendoFraccion(self, dividendo):
+        return dividendo.numerador() / (self * dividendo.denominador())
         
     def dividirEntero(self,dividendo):
         if self.esCero():
@@ -152,13 +155,16 @@ class Fraccion(Numero):
         return (self._numerador * factor.numerador()) / (self._denominador * factor.denominador())
             
     def __div__(self,divisor):
-        if isinstance(divisor, self.__class__):
-            return divisor.dividirFraccion(self)
-        else:
-            return self._numerador / (self._denominador * divisor)
-    
+        divisor.dividiendoFraccion(self)
+
+    def dividiendoEntero(self, dividendo):
+        return (self._denominador * dividendo) / self._numerador
+
+    def dividiendoFraccion(self, dividendo):
+        return self.dividirFraccion(dividendo)
+
     def dividirFraccion(self,dividendo):
-        return (dividendo.numerador() * self._denominador) / (dividendo.denominador () * self._numerador)
+        return (dividendo.numerador() * self._denominador) / (dividendo.denominador() * self._numerador)
 
 class NumeroTest(unittest.TestCase):
 
