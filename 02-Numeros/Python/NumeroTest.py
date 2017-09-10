@@ -54,13 +54,13 @@ class Entero(Numero):
         if isinstance(sumando, self.__class__):
             return Entero(self._valor+sumando.valor())
         else:
-            return Fraccion(Entero(self._valor * sumando.denominador().valor() + sumando.numerador().valor()), sumando.denominador())
+            return Entero(self._valor * sumando.denominador().valor() + sumando.numerador().valor()) / sumando.denominador()
  
     def __mul__(self,factor):
         if isinstance(factor, self.__class__):
             return Entero(self._valor*factor.valor())
         else:
-            return Fraccion(self * factor.numerador(), factor.denominador())
+            return (self * factor.numerador()) / factor.denominador()
          
     def __div__(self,divisor):
         if isinstance(divisor, self.__class__):
@@ -143,7 +143,7 @@ class Fraccion(Numero):
         if isinstance(divisor, self.__class__):
             return divisor.dividirFraccion(self)
         else:
-            return Fraccion(self._numerador, self._denominador * divisor)
+            return self._numerador / (self._denominador * divisor)
     
     def dividirFraccion(self,dividendo):
         return (dividendo.numerador() * self._denominador) / (dividendo.denominador () * self._numerador)
