@@ -155,7 +155,7 @@ class Fraccion(Numero):
         return (self._numerador * factor.numerador()) / (self._denominador * factor.denominador())
             
     def __div__(self,divisor):
-        divisor.dividiendoFraccion(self)
+        return divisor.dividiendoFraccion(self)
 
     def dividiendoEntero(self, dividendo):
         return (self._denominador * dividendo) / self._numerador
