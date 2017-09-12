@@ -9,6 +9,7 @@
 #  
 import unittest
 
+
 class Numero:
     DESCRIPCION_DE_ERROR_DE_DIVISION_POR_CERO = 'No se puede dividir por 0'
 
@@ -18,39 +19,48 @@ class Numero:
     def esUno(self):
         self.shouldBeImplementedBySubclass()
 
-    def __add__(self,sumando):
+    def __add__(self, sumando):
         self.shouldBeImplementedBySubclass()
 
-    def __mul__(self,factor):
+    def __mul__(self, factor):
         self.shouldBeImplementedBySubclass()
-    
-    def __div__(self,divisor):
+
+    def __div__(self, divisor):
+        self.shouldBeImplementedBySubclass()
+
+    def multiplicarEntero(self, factor):
+        self.shouldBeImplementedBySubclass()
+
+    def multiplicarFraccion(self, factor):
+        self.shouldBeImplementedBySubclass()
+
+    def dividiendoEntero(self, dividendo):
+        self.shouldBeImplementedBySubclass()
+
+    def dividiendoFraccion(self, dividendo):
         self.shouldBeImplementedBySubclass()
 
     def shouldBeImplementedBySubclass(self):
         raise NotImplementedError('Should be implemented by the subclass')
 
+
 class Entero(Numero):
-    
     def __init__(self, numero):
         self._valor = numero
 
     def valor(self):
         return self._valor
-    
+
     def esCero(self):
         return self._valor == 0
 
     def esUno(self):
         return self._valor == 1
 
-    def __eq__(self,anObject):
-        if isinstance(anObject, self.__class__):
-            return self._valor==anObject._valor
-        else: 
-            return False
-        
-    def __add__(self,sumando):
+    def __eq__(self, anObject):
+        return isinstance(anObject, self.__class__) and self._valor == anObject._valor
+
+    def __add__(self, sumando):
         return sumando.sumarEntero(self)
 
     def sumarEntero(self, sumando):
@@ -76,62 +86,58 @@ class Entero(Numero):
 
     def dividiendoFraccion(self, dividendo):
         return dividendo.numerador() / (self * dividendo.denominador())
-        
-    def dividirEntero(self,dividendo):
+
+    def dividirEntero(self, dividendo):
         if self.esCero():
             raise Exception(Numero.DESCRIPCION_DE_ERROR_DE_DIVISION_POR_CERO)
         if self.esUno():
             return dividendo
-        
+
         maximoComunDivisor = self.maximoComunDivisorCon(dividendo)
-        #No puedo usar / porque puedo caer en una recursion, por eso divido directamente
-        #los valores porque se que son enteros
+        # No puedo usar / porque puedo caer en una recursion, por eso divido directamente
+        # los valores porque se que son enteros
         numerador = dividendo.divisionEntera(maximoComunDivisor)
         denominador = self.divisionEntera(maximoComunDivisor)
-        
+
         if denominador.esUno():
             return numerador
-        
-        return Fraccion(numerador,denominador)
 
-    def divisionEntera(self,divisorEntero):
-        return Entero (self._valor / divisorEntero.valor())
-            
-    def maximoComunDivisorCon(self,otroEntero):
-        if otroEntero.esCero(): 
+        return Fraccion(numerador, denominador)
+
+    def divisionEntera(self, divisorEntero):
+        return Entero(self._valor / divisorEntero.valor())
+
+    def maximoComunDivisorCon(self, otroEntero):
+        if otroEntero.esCero():
             return self
         else:
             return otroEntero.maximoComunDivisorCon(self.restoCon(otroEntero))
-    
+
     def restoCon(self, divisor):
-        return Entero (self._valor % divisor.valor());
-        
-    
+        return Entero(self._valor % divisor.valor());
+
+
 class Fraccion(Numero):
-    
     def __init__(self, numerador, denominador):
         self._numerador = numerador
         self._denominador = denominador
 
     def numerador(self):
         return self._numerador
-    
+
     def denominador(self):
         return self._denominador
-    
+
     def esCero(self):
         return False
 
     def esUno(self):
         return False
 
-    def __eq__(self,anObject):
-        if isinstance(anObject, self.__class__):
-            return self._numerador*anObject.denominador()==self._denominador*anObject.numerador()
-        else: 
-            return False
-        
-    def __add__(self,sumando):
+    def __eq__(self, anObject):
+        return isinstance(anObject, self.__class__) and self._numerador * anObject.denominador() == self._denominador * anObject.numerador()
+
+    def __add__(self, sumando):
         return sumando.sumarFraccion(self)
 
     def sumarEntero(self, sumando):
@@ -145,7 +151,7 @@ class Fraccion(Numero):
 
         return nuevoNumerador / nuevoDenominador
 
-    def __mul__(self,factor):
+    def __mul__(self, factor):
         return factor.multiplicarFraccion(self)
 
     def multiplicarEntero(self, factor):
@@ -153,8 +159,8 @@ class Fraccion(Numero):
 
     def multiplicarFraccion(self, factor):
         return (self._numerador * factor.numerador()) / (self._denominador * factor.denominador())
-            
-    def __div__(self,divisor):
+
+    def __div__(self, divisor):
         return divisor.dividiendoFraccion(self)
 
     def dividiendoEntero(self, dividendo):
@@ -163,53 +169,53 @@ class Fraccion(Numero):
     def dividiendoFraccion(self, dividendo):
         return self.dividirFraccion(dividendo)
 
-    def dividirFraccion(self,dividendo):
+    def dividirFraccion(self, dividendo):
         return (dividendo.numerador() * self._denominador) / (dividendo.denominador() * self._numerador)
 
-class NumeroTest(unittest.TestCase):
 
+class NumeroTest(unittest.TestCase):
     def createCero(self):
         return Entero(0)
-    
+
     def createUno(self):
         return Entero(1)
-    
+
     def createDos(self):
         return Entero(2)
-    
+
     def createTres(self):
         return Entero(3)
-    
+
     def createCuatro(self):
         return Entero(4)
-    
+
     def createCinco(self):
         return Entero(5)
-    
+
     def createUnQuinto(self):
         return self.uno / self.cinco
-    
+
     def createDosQuintos(self):
         return self.dos / self.cinco
-    
+
     def createTresQuintos(self):
         return self.tres / self.cinco
-    
+
     def createDosVeinticincoavos(self):
         return self.dos / Entero(25)
-    
+
     def createUnMedio(self):
         return self.uno / self.dos
-    
+
     def createCincoMedios(self):
         return self.cinco / self.dos
-    
+
     def createSeisQuintos(self):
         return Entero(6) / self.cinco
-    
+
     def createCuatroMedios(self):
         return self.cuatro / self.dos
-    
+
     def createDosCuartos(self):
         return self.dos / self.cuatro
 
@@ -229,27 +235,27 @@ class NumeroTest(unittest.TestCase):
         self.seisQuintos = self.createSeisQuintos()
         self.cuatroMedios = self.createCuatroMedios()
         self.dosCuartos = self.createDosCuartos()
-             
+
     def test01EsCeroDevuelveTrueSoloParaElCero(self):
-        self.assertTrue (self.cero.esCero())
-        self.assertFalse (self.uno.esCero())
+        self.assertTrue(self.cero.esCero())
+        self.assertFalse(self.uno.esCero())
 
     def test02EsUnoDevuelveTrueSoloParaElUno(self):
-        self.assertTrue (self.uno.esUno())
-        self.assertFalse (self.cero.esUno())
+        self.assertTrue(self.uno.esUno())
+        self.assertFalse(self.cero.esUno())
 
     def test03SumaDeEnteros(self):
-        self.assertEqual (self.dos,self.uno+self.uno)
-    
+        self.assertEqual(self.dos, self.uno + self.uno)
+
     def test04MultiplicacionDeEnteros(self):
-        self.assertEqual(self.cuatro, self.dos*self.dos)
+        self.assertEqual(self.cuatro, self.dos * self.dos)
 
     def test05DivisionDeEnteros(self):
-        self.assertEqual(self.uno, self.dos/self.dos)
-    
+        self.assertEqual(self.uno, self.dos / self.dos)
+
     def test06SumaDeFracciones(self):
-        sieteDecimos = Entero(7) / Entero (10) # <- REEMPLAZAR POR LO QUE CORRESPONDA;
-        self.assertEqual (sieteDecimos,self.unQuinto+self.unMedio)
+        sieteDecimos = Entero(7) / Entero(10)  # <- REEMPLAZAR POR LO QUE CORRESPONDA;
+        self.assertEqual(sieteDecimos, self.unQuinto + self.unMedio)
         # 
         # La suma de fracciones es:
         # 
@@ -260,7 +266,7 @@ class NumeroTest(unittest.TestCase):
         #
 
     def test07MultiplicacionDeFracciones(self):
-        self.assertEqual (self.dosVeinticincoavos,self.unQuinto*self.dosQuintos)
+        self.assertEqual(self.dosVeinticincoavos, self.unQuinto * self.dosQuintos)
         # 
         # La multiplicacion de fracciones es:
         # 
@@ -269,9 +275,9 @@ class NumeroTest(unittest.TestCase):
         # SI ESTAN PENSANDO EN LA REDUCCION DE FRACCIONES NO SE PREOCUPEN!
         # TODAVIA NO SE ESTA TESTEANDO ESE CASO
         #
-    
+
     def test08DivisionDeFracciones(self):
-        self.assertEqual (self.cincoMedios,self.unMedio/self.unQuinto)
+        self.assertEqual(self.cincoMedios, self.unMedio / self.unQuinto)
         # 
         # La division de fracciones es:
         # 
@@ -286,37 +292,37 @@ class NumeroTest(unittest.TestCase):
     # y fracciones con enteros 
     #
     def test09SumaDeEnteroYFraccion(self):
-        self.assertEqual (self.seisQuintos,self.uno+self.unQuinto)
-    
+        self.assertEqual(self.seisQuintos, self.uno + self.unQuinto)
+
     def test10SumaDeFraccionYEntero(self):
-        self.assertEqual (self.seisQuintos,self.unQuinto+self.uno)
+        self.assertEqual(self.seisQuintos, self.unQuinto + self.uno)
 
     # 
     # Hacemos lo mismo para la multipliacion
     #
     def test11MultiplicacionDeEnteroPorFraccion(self):
-        self.assertEqual(self.dosQuintos,self.dos*self.unQuinto)
-    
+        self.assertEqual(self.dosQuintos, self.dos * self.unQuinto)
+
     def test12MultiplicacionDeFraccionPorEntero(self):
-        self.assertEqual(self.dosQuintos,self.unQuinto*self.dos)
-    
+        self.assertEqual(self.dosQuintos, self.unQuinto * self.dos)
+
     # 
     # Hacemos lo mismo para la division
     #
     def test13DivisionDeEnteroPorFraccion(self):
-        self.assertEqual(self.cincoMedios,self.uno/self.dosQuintos)
-    
+        self.assertEqual(self.cincoMedios, self.uno / self.dosQuintos)
+
     def test14DivisionDeFraccionPorEntero(self):
-        self.assertEqual(self.dosVeinticincoavos,self.dosQuintos/self.cinco)
-    
+        self.assertEqual(self.dosVeinticincoavos, self.dosQuintos / self.cinco)
+
     # 
     # Ahora si empezamos con problemas de reduccion de fracciones
     #
     def test15UnaFraccionPuedeSerIgualAUnEntero(self):
-        self.assertEquals(self.dos,self.cuatroMedios)
+        self.assertEquals(self.dos, self.cuatroMedios)
 
     def test16LasFraccionesAparentesSonIguales(self):
-        self.assertEquals(self.unMedio,self.dosCuartos)
+        self.assertEquals(self.unMedio, self.dosCuartos)
         #
         # Las fracciones se reducen utilizando el maximo comun divisor (mcd)
         # Por lo tanto, para a/b, sea c = mcd (a,b) => a/b reducida es:
@@ -339,48 +345,48 @@ class NumeroTest(unittest.TestCase):
         # mcd(2,0) ->
         # 2
         #
-    
+
     def test17LaSumaDeFraccionesPuedeDarEntero(self):
-        self.assertEquals (self.uno,self.unMedio+self.unMedio)
+        self.assertEquals(self.uno, self.unMedio + self.unMedio)
 
     def test18LaMultiplicacionDeFraccionesPuedeDarEntero(self):
-        self.assertEquals(self.dos,self.cuatro*self.unMedio)
+        self.assertEquals(self.dos, self.cuatro * self.unMedio)
 
     def test19LaDivisionDeEnterosPuedeDarFraccion(self):
-        self.assertEquals(self.unMedio, self.dos/self.cuatro)
+        self.assertEquals(self.unMedio, self.dos / self.cuatro)
 
     def test20LaDivisionDeFraccionesPuedeDarEntero(self):
-        self.assertEquals(self.uno, self.unMedio/self.unMedio)
-    
+        self.assertEquals(self.uno, self.unMedio / self.unMedio)
+
     def test21NoSePuedeDividirEnteroPorCero(self):
         try:
-            self.uno/self.cero
+            self.uno / self.cero
             self.fail()
         except Exception as e:
-            self.assertEquals(self.descripcionDeErrorDeNoSePuedeDividirPorCero(),e.message)
+            self.assertEquals(self.descripcionDeErrorDeNoSePuedeDividirPorCero(), e.message)
 
     def test22NoSePuedeDividirFraccionPorCero(self):
         try:
-            self.unQuinto/self.cero
+            self.unQuinto / self.cero
             self.fail()
         except Exception as e:
-            self.assertEquals(self.descripcionDeErrorDeNoSePuedeDividirPorCero(),e.message)
+            self.assertEquals(self.descripcionDeErrorDeNoSePuedeDividirPorCero(), e.message)
 
     # Este test puede ser redundante dependiendo de la implementacion realizada 
     def test23NoSePuedeCrearFraccionConDenominadorCero(self):
         try:
-            self.crearFraccionCon(self.uno,self.cero)
+            self.crearFraccionCon(self.uno, self.cero)
             self.fail()
         except Exception as e:
-            self.assertEquals(self.descripcionDeErrorDeNoSePuedeDividirPorCero(),e.message)
+            self.assertEquals(self.descripcionDeErrorDeNoSePuedeDividirPorCero(), e.message)
 
-    def crearFraccionCon(self, numerador, denominador): 
-        return numerador/denominador
-    
+    def crearFraccionCon(self, numerador, denominador):
+        return numerador / denominador
+
     def descripcionDeErrorDeNoSePuedeDividirPorCero(self):
-        #Tratar de que la implementacion de este metodo utilice el mensaje definido en alguna de las clase de numero
+        # Tratar de que la implementacion de este metodo utilice el mensaje definido en alguna de las clase de numero
         return Numero.DESCRIPCION_DE_ERROR_DE_DIVISION_POR_CERO
-    
+
+
 if __name__ == "__main__":
     unittest.main()
-    
