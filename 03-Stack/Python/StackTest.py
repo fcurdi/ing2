@@ -15,27 +15,67 @@ class Stack:
     STACK_EMPTY_DESCRIPTION = 'Stack is empty'
 
     def __init__(self):
-        self.contents = []
+        self.contents = NullElement()
 
     def push(self, anObject):
-        self.contents.append(anObject)
+        self.contents = Element(anObject, self.contents)
 
     def pop(self):
-        if self.isEmpty():
-            raise Exception(self.STACK_EMPTY_DESCRIPTION)
-        return self.contents.pop(-1)
+        topElement = self.contents.value()
+        self.contents = self.contents.stackedUpon()
+        return topElement
 
     def top(self):
-        if self.isEmpty():
-            raise Exception(self.STACK_EMPTY_DESCRIPTION)
-        return self.contents[-1]
+        return self.contents.value()
 
     def isEmpty(self):
         return self.size() == 0
 
     def size(self):
-        return len(self.contents)
+        return self.contents.size()
 
+
+class StackElement:
+
+    def stackedUpon(self):
+        self.shouldBeImplementedBySubclass()
+
+    def value(self):
+        self.shouldBeImplementedBySubclass()
+
+    def size(self):
+        self.shouldBeImplementedBySubclass()
+
+    def shouldBeImplementedBySubclass(self):
+        raise NotImplementedError('Should be implemented by the subclass')
+
+
+class Element(StackElement):
+
+    def __init__(self, value, stackElement):
+        self._value = value
+        self._stackedUpon = stackElement
+
+    def stackedUpon(self):
+        return self._stackedUpon
+
+    def value(self):
+        return self._value
+
+    def size(self):
+        return 1 + self._stackedUpon.size()
+
+
+class NullElement(StackElement):
+
+    def stackedUpon(self):
+        raise Exception(Stack.STACK_EMPTY_DESCRIPTION)
+
+    def value(self):
+        raise Exception(Stack.STACK_EMPTY_DESCRIPTION)
+
+    def size(self):
+        return 0
 
 class StackTest(unittest.TestCase):
     def testStackShouldBeEmptyWhenCreated(self):
