@@ -15,32 +15,35 @@ class Stack:
     STACK_EMPTY_DESCRIPTION = 'Stack is empty'
 
     def __init__(self):
-        self.contents = NullElement()
+        self._top = NoStackTop()
 
     def push(self, anObject):
-        self.contents = Element(anObject, self.contents)
+        self._top = ConcreteStackTop(anObject, self._top)
 
     def pop(self):
-        topElement = self.contents.value()
-        self.contents = self.contents.stackedUpon()
+        topElement = self._top.value()
+        self._top = self._top.stackedUpon()
         return topElement
 
     def top(self):
-        return self.contents.value()
+        return self._top.value()
 
     def isEmpty(self):
-        return self.size() == 0
+        return self._top.isEmpty()
 
     def size(self):
-        return self.contents.size()
+        return self._top.size()
 
 
-class StackElement:
+class StackTop:
 
     def stackedUpon(self):
         self.shouldBeImplementedBySubclass()
 
     def value(self):
+        self.shouldBeImplementedBySubclass()
+
+    def isEmpty(self):
         self.shouldBeImplementedBySubclass()
 
     def size(self):
@@ -50,11 +53,11 @@ class StackElement:
         raise NotImplementedError('Should be implemented by the subclass')
 
 
-class Element(StackElement):
+class ConcreteStackTop(StackTop):
 
-    def __init__(self, value, stackElement):
+    def __init__(self, value, stackTop):
         self._value = value
-        self._stackedUpon = stackElement
+        self._stackedUpon = stackTop
 
     def stackedUpon(self):
         return self._stackedUpon
@@ -62,17 +65,23 @@ class Element(StackElement):
     def value(self):
         return self._value
 
+    def isEmpty(self):
+        return False
+
     def size(self):
         return 1 + self._stackedUpon.size()
 
 
-class NullElement(StackElement):
+class NoStackTop(StackTop):
 
     def stackedUpon(self):
         raise Exception(Stack.STACK_EMPTY_DESCRIPTION)
 
     def value(self):
         raise Exception(Stack.STACK_EMPTY_DESCRIPTION)
+
+    def isEmpty(self):
+        return True
 
     def size(self):
         return 0
