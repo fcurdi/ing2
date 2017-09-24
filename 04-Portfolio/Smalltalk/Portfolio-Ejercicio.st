@@ -408,10 +408,12 @@ SummarizingAccount subclass: #Portfolio
 	poolDictionaries: ''
 	category: 'Portfolio-Ejercicio'!
 
-!Portfolio methodsFor: 'balance' stamp: 'LRFC 9/19/2017 20:26:45'!
+!Portfolio methodsFor: 'balance' stamp: 'F C 9/24/2017 19:24:43'!
 balance
-
-	^(accounts collect: [ :anAccount | anAccount balance]) sum! !
+	
+	^accounts inject: 0 into: [ :balance :anAccount | balance + anAccount balance ].
+	
+	! !
 
 
 !Portfolio methodsFor: 'testing' stamp: 'F C 9/24/2017 16:36:38'!
@@ -427,12 +429,12 @@ registers: aTransaction
 	^accounts anySatisfy: [ :anAccount | anAccount registers: aTransaction ]! !
 
 
-!Portfolio methodsFor: 'transactions' stamp: 'LRFC 9/19/2017 21:08:37'!
+!Portfolio methodsFor: 'transactions' stamp: 'F C 9/24/2017 19:28:05'!
 transactions 
 
-	^(accounts collect: [ :anAccount | anAccount transactions ]) 
+	^accounts 
 		inject: (OrderedCollection new) 
-		into: [ :anAccountTransactions :anotherAccountTransactions | anAccountTransactions union: anotherAccountTransactions ]. ! !
+		into: [ :transactions :anAccount |transactions union: anAccount transactions]. ! !
 
 !Portfolio methodsFor: 'transactions' stamp: 'F C 9/24/2017 16:27:59'!
 transactionsOf: anAccount 
