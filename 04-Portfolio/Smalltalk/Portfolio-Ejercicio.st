@@ -437,10 +437,23 @@ transactions
 		inject: (OrderedCollection new) 
 		into: [ :anAccountTransactions :anotherAccountTransactions | anAccountTransactions union: anotherAccountTransactions ]. ! !
 
-!Portfolio methodsFor: 'transactions' stamp: 'LRFC 9/19/2017 21:11:24'!
+!Portfolio methodsFor: 'transactions' stamp: 'F C 9/24/2017 14:51:30'!
 transactionsOf: anAccount 
 
-	^(accounts detect: [ :account | account = anAccount ]) transactions ! !
+	^(accounts 
+		detect: [ :account | 
+			(account isKindOf: self class) 
+				ifTrue: [
+					(anAccount isKindOf: self class) 
+						ifTrue: [ anAccount  = account ]
+						ifFalse:[^account transactionsOf: anAccount]
+				]
+				ifFalse:[
+					account = anAccount .
+				]
+		] 
+		ifNone: [ self error: self class accountNotManagedMessageDescription]
+	) transactions. ! !
 
 
 !Portfolio methodsFor: 'initialize' stamp: 'LRFC 9/19/2017 20:22:55'!
@@ -454,15 +467,29 @@ initializeWith: anAccount and: anotherAccount
 Portfolio class
 	instanceVariableNames: ''!
 
-!Portfolio class methodsFor: 'instance creation' stamp: 'LRFC 9/19/2017 20:19:33'!
+!Portfolio class methodsFor: 'instance creation' stamp: 'F C 9/24/2017 15:03:24'!
 with: anAccount1 with: anAccount2
 
+	((anAccount1 manages: anAccount2) or: [ anAccount2 manages: anAccount1 ]) 
+		ifTrue: [ self error: self accountAlreadyManagedErrorMessage ].
+		
 	^self new initializeWith: anAccount1 and: anAccount2.! !
 
 !Portfolio class methodsFor: 'instance creation' stamp: 'HernanWilkinson 7/13/2011 18:41'!
 withAll: aCollectionOfAccounts
 
 	self shouldBeImplemented ! !
+
+
+!Portfolio class methodsFor: 'error description' stamp: 'F C 9/24/2017 14:58:36'!
+accountAlreadyManagedErrorMessage
+
+	^'Cannot create portfolio with duplicate accounts'.! !
+
+!Portfolio class methodsFor: 'error description' stamp: 'F C 9/24/2017 14:52:19'!
+accountNotManagedMessageDescription
+	
+	^'The account is not managed by this portfolio'.! !
 
 
 !classDefinition: #ReceptiveAccount category: #'Portfolio-Ejercicio'!
