@@ -403,38 +403,50 @@ balance
 
 !classDefinition: #Portfolio category: #'Portfolio-Ejercicio'!
 SummarizingAccount subclass: #Portfolio
-	instanceVariableNames: ''
+	instanceVariableNames: 'accounts'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Portfolio-Ejercicio'!
 
-!Portfolio methodsFor: 'balance' stamp: 'HernanWilkinson 7/13/2011 18:39'!
+!Portfolio methodsFor: 'balance' stamp: 'LRFC 9/19/2017 20:26:45'!
 balance
 
-	self shouldBeImplemented ! !
+	^(accounts collect: [ :anAccount | anAccount balance]) sum! !
 
 
-!Portfolio methodsFor: 'testing' stamp: 'HernanWilkinson 7/13/2011 18:39'!
+!Portfolio methodsFor: 'testing' stamp: 'LRFC 9/19/2017 20:59:41'!
 manages: anAccount
-
-		self shouldBeImplemented 
+		
+		^accounts anySatisfy: [ :account | 	
+			((anAccount isKindOf: self class) and: [account isKindOf: self class])
+				ifTrue: [account = anAccount]
+				ifFalse: [account manages: anAccount]
+			]
 ! !
 
-!Portfolio methodsFor: 'testing' stamp: 'HernanWilkinson 7/13/2011 18:39'!
-registers: aTtransaction
+!Portfolio methodsFor: 'testing' stamp: 'LRFC 9/19/2017 20:33:17'!
+registers: aTransaction
 
-	self shouldBeImplemented ! !
+	^accounts anySatisfy: [ :anAccount | anAccount registers: aTransaction ]! !
 
 
-!Portfolio methodsFor: 'transactions' stamp: 'HernanWilkinson 7/13/2011 18:39'!
+!Portfolio methodsFor: 'transactions' stamp: 'LRFC 9/19/2017 21:08:37'!
 transactions 
 
-	self shouldBeImplemented ! !
+	^(accounts collect: [ :anAccount | anAccount transactions ]) 
+		inject: (OrderedCollection new) 
+		into: [ :anAccountTransactions :anotherAccountTransactions | anAccountTransactions union: anotherAccountTransactions ]. ! !
 
-!Portfolio methodsFor: 'transactions' stamp: 'HernanWilkinson 7/13/2011 18:40'!
+!Portfolio methodsFor: 'transactions' stamp: 'LRFC 9/19/2017 21:11:24'!
 transactionsOf: anAccount 
 
-	self shouldBeImplemented ! !
+	^(accounts detect: [ :account | account = anAccount ]) transactions ! !
+
+
+!Portfolio methodsFor: 'initialize' stamp: 'LRFC 9/19/2017 20:22:55'!
+initializeWith: anAccount and: anotherAccount
+	
+	accounts := OrderedCollection with: anAccount with: anotherAccount! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -442,10 +454,10 @@ transactionsOf: anAccount
 Portfolio class
 	instanceVariableNames: ''!
 
-!Portfolio class methodsFor: 'instance creation' stamp: 'HernanWilkinson 7/13/2011 18:41'!
+!Portfolio class methodsFor: 'instance creation' stamp: 'LRFC 9/19/2017 20:19:33'!
 with: anAccount1 with: anAccount2
 
-	self shouldBeImplemented ! !
+	^self new initializeWith: anAccount1 and: anAccount2.! !
 
 !Portfolio class methodsFor: 'instance creation' stamp: 'HernanWilkinson 7/13/2011 18:41'!
 withAll: aCollectionOfAccounts
