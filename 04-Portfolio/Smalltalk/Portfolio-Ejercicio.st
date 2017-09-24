@@ -414,14 +414,11 @@ balance
 	^(accounts collect: [ :anAccount | anAccount balance]) sum! !
 
 
-!Portfolio methodsFor: 'testing' stamp: 'LRFC 9/19/2017 20:59:41'!
+!Portfolio methodsFor: 'testing' stamp: 'F C 9/24/2017 16:36:38'!
 manages: anAccount
-		
-		^accounts anySatisfy: [ :account | 	
-			((anAccount isKindOf: self class) and: [account isKindOf: self class])
-				ifTrue: [account = anAccount]
-				ifFalse: [account manages: anAccount]
-			]
+
+	^self = anAccount or: [ accounts anySatisfy: [ :account | account manages: anAccount ] ].
+	
 ! !
 
 !Portfolio methodsFor: 'testing' stamp: 'LRFC 9/19/2017 20:33:17'!
@@ -437,29 +434,23 @@ transactions
 		inject: (OrderedCollection new) 
 		into: [ :anAccountTransactions :anotherAccountTransactions | anAccountTransactions union: anotherAccountTransactions ]. ! !
 
-!Portfolio methodsFor: 'transactions' stamp: 'F C 9/24/2017 14:51:30'!
+!Portfolio methodsFor: 'transactions' stamp: 'F C 9/24/2017 16:27:59'!
 transactionsOf: anAccount 
-
-	^(accounts 
-		detect: [ :account | 
-			(account isKindOf: self class) 
-				ifTrue: [
-					(anAccount isKindOf: self class) 
-						ifTrue: [ anAccount  = account ]
-						ifFalse:[^account transactionsOf: anAccount]
-				]
-				ifFalse:[
-					account = anAccount .
-				]
-		] 
-		ifNone: [ self error: self class accountNotManagedMessageDescription]
-	) transactions. ! !
-
-
-!Portfolio methodsFor: 'initialize' stamp: 'LRFC 9/19/2017 20:22:55'!
-initializeWith: anAccount and: anotherAccount
 	
-	accounts := OrderedCollection with: anAccount with: anotherAccount! !
+	^(accounts 
+		detect: [ :account | account manages: anAccount] 
+		ifNone: [ self error: self class accountNotManagedMessageDescription]
+	) transactions.
+
+	
+	
+	! !
+
+
+!Portfolio methodsFor: 'initialize' stamp: 'F C 9/24/2017 15:41:47'!
+initializeWith: aCollectionOfAccounts
+
+	accounts := aCollectionOfAccounts.! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -467,18 +458,22 @@ initializeWith: anAccount and: anotherAccount
 Portfolio class
 	instanceVariableNames: ''!
 
-!Portfolio class methodsFor: 'instance creation' stamp: 'F C 9/24/2017 15:03:24'!
+!Portfolio class methodsFor: 'instance creation' stamp: 'F C 9/24/2017 15:32:21'!
 with: anAccount1 with: anAccount2
 
-	((anAccount1 manages: anAccount2) or: [ anAccount2 manages: anAccount1 ]) 
-		ifTrue: [ self error: self accountAlreadyManagedErrorMessage ].
-		
-	^self new initializeWith: anAccount1 and: anAccount2.! !
+	^self withAll: (OrderedCollection with: anAccount1 with: anAccount2).! !
 
-!Portfolio class methodsFor: 'instance creation' stamp: 'HernanWilkinson 7/13/2011 18:41'!
+!Portfolio class methodsFor: 'instance creation' stamp: 'F C 9/24/2017 15:46:54'!
 withAll: aCollectionOfAccounts
 
-	self shouldBeImplemented ! !
+	aCollectionOfAccounts asOrderedCollection groupsOf: 2 atATimeDo: [ :account1 :account2 | 
+		((account1 manages: account2) or: [account1 manages: account2]) ifTrue: [ self error: self accountAlreadyManagedErrorMessage ]
+	].
+
+	^self new initializeWith: aCollectionOfAccounts.
+	
+	
+	! !
 
 
 !Portfolio class methodsFor: 'error description' stamp: 'F C 9/24/2017 14:58:36'!
