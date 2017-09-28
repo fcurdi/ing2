@@ -478,15 +478,15 @@ investmentNetOf: anAccount
 	
 	^(InvestmentNet of: anAccount ) calculate.! !
 
-!PortfolioTest methodsFor: 'test support' stamp: 'HernanWilkinson 9/6/2016 19:43'!
+!PortfolioTest methodsFor: 'test support' stamp: 'F C 9/28/2017 00:09:33'!
 portofolioTreeOf: aPortfolio namingAccountWith: aDictionary 
 	
-	self shouldBeImplemented ! !
+	^aPortfolio treeWith: aDictionary.! !
 
-!PortfolioTest methodsFor: 'test support' stamp: 'HernanWilkinson 9/6/2016 19:43'!
+!PortfolioTest methodsFor: 'test support' stamp: 'F C 9/28/2017 00:45:11'!
 reversePortofolioTreeOf: aPortfolio namingAccountWith: aDictionary 
 	
-	self shouldBeImplemented ! !
+	^aPortfolio reverseTreeWith: aDictionary.! !
 
 
 !classDefinition: #AccountQuery category: #'PortfolioTreePrinter-Ejercicio'!
@@ -928,6 +928,25 @@ initializeWithAll: aCollectionOfAccounts
 
 	accounts := aCollectionOfAccounts   ! !
 
+
+!Portfolio methodsFor: 'as yet unclassified' stamp: 'F C 9/28/2017 00:45:34'!
+reverseTreeWith: aDictionary 
+
+	^(self treeWith: aDictionary) reverse.! !
+
+!Portfolio methodsFor: 'as yet unclassified' stamp: 'F C 9/28/2017 00:43:03'!
+treeWith: aDictionary 
+
+	^accounts
+		inject: (OrderedCollection with: (aDictionary at: self))
+		into: [ :tree :account | 
+				|innerTree|
+				innerTree := (account treeWith: aDictionary) collect: [ :line | ' ', line ].
+				tree addAllLast: innerTree.
+				tree.
+			].
+! !
+
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
 !classDefinition: 'Portfolio class' category: #'PortfolioTreePrinter-Ejercicio'!
@@ -1038,6 +1057,12 @@ summary
 	^transactions 
 		inject: OrderedCollection new
 		into: [ :accountSummary :transaction | accountSummary add: transaction detail. accountSummary ].! !
+
+
+!ReceptiveAccount methodsFor: 'as yet unclassified' stamp: 'F C 9/28/2017 00:31:32'!
+treeWith: aDictionary 
+
+	^OrderedCollection with: (aDictionary at: self).! !
 
 
 !classDefinition: #Transfer category: #'PortfolioTreePrinter-Ejercicio'!
