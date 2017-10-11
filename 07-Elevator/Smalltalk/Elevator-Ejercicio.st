@@ -5,6 +5,35 @@ Error subclass: #ElevatorEmergency
 	poolDictionaries: ''
 	category: 'Elevator-Ejercicio'!
 
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'ElevatorEmergency class' category: #'Elevator-Ejercicio'!
+ElevatorEmergency class
+	instanceVariableNames: ''!
+
+!ElevatorEmergency class methodsFor: 'signaling' stamp: 'F C 10/10/2017 22:50:05'!
+desynchronizedCabinSensor
+
+	self signal: self desynchronizedCabinSensorErrorDescription.
+	! !
+
+!ElevatorEmergency class methodsFor: 'signaling' stamp: 'F C 10/10/2017 22:50:10'!
+desynchronizedDoorSensor
+
+	self signal: self desynchronizedDoorSensorErrorDescription.
+	! !
+
+
+!ElevatorEmergency class methodsFor: 'error descriptions' stamp: 'F C 10/10/2017 22:49:47'!
+desynchronizedCabinSensorErrorDescription .
+	
+	^'Sensor de cabina desincronizado'.! !
+
+!ElevatorEmergency class methodsFor: 'error descriptions' stamp: 'F C 10/10/2017 22:48:01'!
+desynchronizedDoorSensorErrorDescription .
+	
+	^'Sensor de puerta desincronizado'.! !
+
 
 !classDefinition: #ElevatorTest category: #'Elevator-Ejercicio'!
 TestCase subclass: #ElevatorTest
@@ -436,10 +465,21 @@ test05ElevatorGetsIdleWhenDoorGetOpened
 
 !classDefinition: #Cabin category: #'Elevator-Ejercicio'!
 Object subclass: #Cabin
-	instanceVariableNames: 'door state'
+	instanceVariableNames: 'door state floorsToGo currentFloor'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Elevator-Ejercicio'!
+
+!Cabin methodsFor: 'accesing' stamp: 'F C 10/10/2017 22:10:20'!
+currentFloor
+	
+	^currentFloor.! !
+
+
+!Cabin methodsFor: 'testing' stamp: 'F C 10/10/2017 22:22:19'!
+hasFloorsToGo
+
+	^floorsToGo isEmpty not.! !
 
 !Cabin methodsFor: 'testing' stamp: 'F C 10/8/2017 23:44:54'!
 isDoorClosed
@@ -490,12 +530,13 @@ closeDoorWhenStopped
 
 	door close.! !
 
-!Cabin methodsFor: 'operating' stamp: 'F C 10/8/2017 23:02:35'!
+!Cabin methodsFor: 'operating' stamp: 'F C 10/10/2017 21:58:09'!
 closeDoorWhenWaitingForPeople
 
-	door closeWhenWaitingForPeople.! !
+	door close.
+	state _ StoppedCabinState for: self.! !
 
-!Cabin methodsFor: 'operating' stamp: 'F C 10/4/2017 20:19:52'!
+!Cabin methodsFor: 'operating' stamp: 'F C 10/10/2017 20:31:19'!
 openDoor
 
 	state openDoor.! !
@@ -503,14 +544,7 @@ openDoor
 !Cabin methodsFor: 'operating' stamp: 'F C 10/8/2017 22:45:38'!
 openDoorWhenMoving! !
 
-!Cabin methodsFor: 'operating' stamp: 'F C 10/8/2017 23:16:54'!
-openDoorWhenOnFloor
-
-	state := WaitingForPeopleCabinState for: self.
-	door open.
-! !
-
-!Cabin methodsFor: 'operating' stamp: 'F C 10/4/2017 20:07:36'!
+!Cabin methodsFor: 'operating' stamp: 'F C 10/10/2017 20:27:29'!
 openDoorWhenStopped
 	
 	door open.! !
@@ -524,31 +558,83 @@ waitForPeopleTimedOut
 	self closeDoorWhenWaitingForPeople.! !
 
 
-!Cabin methodsFor: 'initialization' stamp: 'F C 10/4/2017 20:02:35'!
+!Cabin methodsFor: 'initialization' stamp: 'F C 10/10/2017 22:26:22'!
 initialize
 	
 	super initialize.
 	state _ StoppedCabinState for: self.
-	door _ Door new.! !
+	door _ Door new.
+	floorsToGo _ OrderedCollection new.
+	currentFloor _ 0.! !
 
 
-!Cabin methodsFor: 'sensor' stamp: 'F C 10/4/2017 20:03:48'!
+!Cabin methodsFor: 'sensor' stamp: 'F C 10/10/2017 21:55:03'!
 doorClosed
 	
+	state doorClosed.! !
+
+!Cabin methodsFor: 'sensor' stamp: 'F C 10/10/2017 21:55:14'!
+doorClosedWhenMoving
+
+	ElevatorEmergency signal: 'Sensor de puerta desincronizado'.! !
+
+!Cabin methodsFor: 'sensor' stamp: 'F C 10/10/2017 21:57:01'!
+doorClosedWhenStopped
+
 	door closed.
-	state := MovingCabinState for: self.! !
+	state _ MovingCabinState for: self.! !
 
-!Cabin methodsFor: 'sensor' stamp: 'F C 10/4/2017 23:00:51'!
-doorOpenedWithFloorsToGo
+!Cabin methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:48:51'!
+doorClosedWhenWaitingForPeople
 
-	door opened.
-	state := WaitingForPeopleCabinState for: self.! !
+	ElevatorEmergency desynchronizedDoorSensor.! !
 
-!Cabin methodsFor: 'sensor' stamp: 'F C 10/4/2017 23:00:59'!
-doorOpenedWithNoFloorsToGo
+!Cabin methodsFor: 'sensor' stamp: 'F C 10/10/2017 21:47:15'!
+doorOpened
 	
+	state doorOpened.! !
+
+!Cabin methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:49:03'!
+doorOpenedWhenMoving
+
+	ElevatorEmergency desynchronizedDoorSensor.! !
+
+!Cabin methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:25:28'!
+doorOpenedWhenStopped
+
 	door opened.
-	state := StoppedCabinState for: self.! !
+	self hasFloorsToGo ifTrue: [ state _ WaitingForPeopleCabinState for: self ].
+	
+	! !
+
+!Cabin methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:49:08'!
+doorOpenedWhenWaitingForPeople
+
+	ElevatorEmergency desynchronizedDoorSensor.! !
+
+!Cabin methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:15:12'!
+goUpPushedFromFloor: floor
+
+	floorsToGo add: floor.
+	self closeDoor.
+! !
+
+!Cabin methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:50:25'!
+onFloor: aFloor
+
+	aFloor = (currentFloor + 1) 
+		ifFalse: [ ElevatorEmergency desynchronizedCabinSensor ].
+
+	currentFloor _ aFloor.
+	
+	(floorsToGo includes: aFloor) 
+		ifTrue:  [
+			floorsToGo remove: aFloor.
+			state _ StoppedCabinState for: self.
+			door open.	
+		].
+	
+! !
 
 
 !classDefinition: #CabinState category: #'Elevator-Ejercicio'!
@@ -590,6 +676,17 @@ initializeWith: aCabin
 
 	cabin := aCabin.! !
 
+
+!CabinState methodsFor: 'sensor' stamp: 'F C 10/10/2017 21:47:52'!
+doorClosed
+
+	self subclassResponsibility.! !
+
+!CabinState methodsFor: 'sensor' stamp: 'F C 10/10/2017 21:47:44'!
+doorOpened
+
+	self subclassResponsibility.! !
+
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
 !classDefinition: 'CabinState class' category: #'Elevator-Ejercicio'!
@@ -625,6 +722,17 @@ isMoving
 
 	^true.! !
 
+
+!MovingCabinState methodsFor: 'sensor' stamp: 'F C 10/10/2017 21:48:43'!
+doorClosed
+
+	cabin doorClosedWhenMoving.! !
+
+!MovingCabinState methodsFor: 'sensor' stamp: 'F C 10/10/2017 21:48:27'!
+doorOpened
+
+	cabin doorOpenedWhenMoving.! !
+
 
 !classDefinition: #StoppedCabinState category: #'Elevator-Ejercicio'!
 CabinState subclass: #StoppedCabinState
@@ -648,6 +756,17 @@ openDoor
 isStopped
 
 	^true.! !
+
+
+!StoppedCabinState methodsFor: 'sensor' stamp: 'F C 10/10/2017 21:49:24'!
+doorClosed
+
+	cabin doorClosedWhenStopped.! !
+
+!StoppedCabinState methodsFor: 'sensor' stamp: 'F C 10/10/2017 21:49:35'!
+doorOpened
+
+	cabin doorOpenedWhenStopped.! !
 
 
 !classDefinition: #WaitingForPeopleCabinState category: #'Elevator-Ejercicio'!
@@ -673,6 +792,17 @@ isWaitingForPeople
 
 	^true.! !
 
+
+!WaitingForPeopleCabinState methodsFor: 'sensor' stamp: 'F C 10/10/2017 21:49:58'!
+doorClosed
+
+	cabin doorClosedWhenWaitingForPeople.! !
+
+!WaitingForPeopleCabinState methodsFor: 'sensor' stamp: 'F C 10/10/2017 21:50:07'!
+doorOpened
+
+	cabin doorOpenedWhenWaitingForPeople.! !
+
 
 !classDefinition: #ControllerState category: #'Elevator-Ejercicio'!
 Object subclass: #ControllerState
@@ -692,13 +822,13 @@ isWorking
 	^false.! !
 
 
-!ControllerState methodsFor: 'sensor' stamp: 'F C 10/8/2017 23:56:18'!
-doorClosed
+!ControllerState methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:38:08'!
+cabinDoorClosed
 	
 	self subclassResponsibility.! !
 
-!ControllerState methodsFor: 'sensor' stamp: 'F C 10/8/2017 23:56:23'!
-doorOpened
+!ControllerState methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:38:14'!
+cabinDoorOpened
 	
 	self subclassResponsibility.! !
 
@@ -738,15 +868,15 @@ ControllerState subclass: #IdleControllerState
 	poolDictionaries: ''
 	category: 'Elevator-Ejercicio'!
 
-!IdleControllerState methodsFor: 'sensor' stamp: 'F C 10/4/2017 21:44:28'!
-doorClosed
+!IdleControllerState methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:38:39'!
+cabinDoorClosed
 
-	controller doorClosedWhenIdle.! !
+	controller cabinDoorClosedWhenIdle.! !
 
-!IdleControllerState methodsFor: 'sensor' stamp: 'F C 10/8/2017 23:58:51'!
-doorOpened
+!IdleControllerState methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:38:34'!
+cabinDoorOpened
 
-	controller doorOpenedWhenIdle.! !
+	controller cabinDoorOpenedWhenIdle.! !
 
 
 !IdleControllerState methodsFor: 'testing' stamp: 'F C 10/3/2017 23:08:52'!
@@ -790,15 +920,15 @@ isWorking
 	^true.! !
 
 
-!WorkingControllerState methodsFor: 'sensor' stamp: 'F C 10/4/2017 21:49:59'!
-doorClosed
+!WorkingControllerState methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:38:54'!
+cabinDoorClosed
 
-	controller doorClosedWhenWorking.! !
+	controller cabinDoorClosedWhenWorking.! !
 
-!WorkingControllerState methodsFor: 'sensor' stamp: 'F C 10/9/2017 00:02:22'!
-doorOpened
+!WorkingControllerState methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:38:50'!
+cabinDoorOpened
 
-	controller doorOpenedWhenWorking.! !
+	controller cabinDoorOpenedWhenWorking.! !
 
 
 !classDefinition: #Door category: #'Elevator-Ejercicio'!
@@ -830,11 +960,11 @@ isOpening
 	^state isOpening.! !
 
 
-!Door methodsFor: 'initialization' stamp: 'F C 10/4/2017 22:45:43'!
+!Door methodsFor: 'initialization' stamp: 'F C 10/10/2017 21:33:45'!
 initialize
 
 	super initialize.
-	state := OpenedDoorState for: self.! !
+	state _ OpenedDoorState for: self.! !
 
 
 !Door methodsFor: 'sensor' stamp: 'F C 10/8/2017 23:33:30'!
@@ -842,25 +972,25 @@ closed
 
 	state closed.! !
 
-!Door methodsFor: 'sensor' stamp: 'F C 10/8/2017 23:18:56'!
+!Door methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:50:58'!
 closedWhenClosed
 
-	ElevatorEmergency signal: 'Sensor de puerta desincronizado'.! !
+	ElevatorEmergency desynchronizedDoorSensor.! !
 
-!Door methodsFor: 'sensor' stamp: 'F C 10/8/2017 23:29:08'!
+!Door methodsFor: 'sensor' stamp: 'F C 10/10/2017 20:42:03'!
 closedWhenClosing
 
-	state := ClosedDoorState for: self.! !
+	state _ ClosedDoorState for: self.! !
 
-!Door methodsFor: 'sensor' stamp: 'F C 10/8/2017 22:54:56'!
+!Door methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:51:08'!
 closedWhenOpened
 
-	ElevatorEmergency signal: 'Sensor de puerta desincronizado'.! !
+	ElevatorEmergency desynchronizedDoorSensor.! !
 
-!Door methodsFor: 'sensor' stamp: 'F C 10/8/2017 22:56:34'!
+!Door methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:51:12'!
 closedWhenOpening
 
-	ElevatorEmergency signal: 'Sensor de puerta desincronizado'.! !
+	ElevatorEmergency desynchronizedDoorSensor.! !
 
 !Door methodsFor: 'sensor' stamp: 'F C 10/8/2017 23:34:37'!
 opened
@@ -868,25 +998,25 @@ opened
 	state opened.
 	! !
 
-!Door methodsFor: 'sensor' stamp: 'F C 10/8/2017 23:37:21'!
+!Door methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:51:16'!
 openedWhenClosed
 
-	ElevatorEmergency signal: 'Sensor de puerta desincronizado'.! !
+	ElevatorEmergency desynchronizedDoorSensor.! !
 
-!Door methodsFor: 'sensor' stamp: 'F C 10/8/2017 23:37:25'!
+!Door methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:51:19'!
 openedWhenClosing
 
-	ElevatorEmergency signal: 'Sensor de puerta desincronizado'.! !
+	ElevatorEmergency desynchronizedDoorSensor.! !
 
-!Door methodsFor: 'sensor' stamp: 'F C 10/8/2017 23:37:29'!
+!Door methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:51:22'!
 openedWhenOpened
 
-	ElevatorEmergency signal: 'Sensor de puerta desincronizado'.! !
+	ElevatorEmergency desynchronizedDoorSensor.! !
 
-!Door methodsFor: 'sensor' stamp: 'F C 10/8/2017 23:37:39'!
+!Door methodsFor: 'sensor' stamp: 'F C 10/10/2017 20:42:16'!
 openedWhenOpening
 
-	state := OpenedDoorState for: self.! !
+	state _ OpenedDoorState for: self.! !
 
 
 !Door methodsFor: 'operating' stamp: 'F C 10/8/2017 23:38:08'!
@@ -902,35 +1032,29 @@ closeWhenClosed
 !Door methodsFor: 'operating' stamp: 'F C 10/8/2017 23:28:29'!
 closeWhenClosing! !
 
-!Door methodsFor: 'operating' stamp: 'F C 10/8/2017 23:30:42'!
+!Door methodsFor: 'operating' stamp: 'F C 10/10/2017 20:45:42'!
 closeWhenOpened
 
-	state := ClosingDoorState for: self.! !
+	state _ ClosingDoorState for: self.! !
 
-!Door methodsFor: 'operating' stamp: 'F C 10/8/2017 23:31:57'!
+!Door methodsFor: 'operating' stamp: 'F C 10/10/2017 20:41:32'!
 closeWhenOpening
-
-	state := ClosingDoorState for: self.! !
-
-!Door methodsFor: 'operating' stamp: 'F C 10/8/2017 23:16:39'!
-closeWhenWaitingForPeople
-
-	state isOpening ifFalse: [ self close].! !
+! !
 
 !Door methodsFor: 'operating' stamp: 'F C 10/8/2017 23:38:44'!
 open
 
 	state open.! !
 
-!Door methodsFor: 'operating' stamp: 'F C 10/8/2017 23:27:43'!
+!Door methodsFor: 'operating' stamp: 'F C 10/10/2017 20:42:48'!
 openWhenClosed
 
-	state := OpeningDoorState for: self.! !
+	state _ OpeningDoorState for: self.! !
 
-!Door methodsFor: 'operating' stamp: 'F C 10/8/2017 23:29:50'!
+!Door methodsFor: 'operating' stamp: 'F C 10/10/2017 20:43:23'!
 openWhenClosing
 
-	state := OpeningDoorState for: self.! !
+	state _ OpeningDoorState for: self.! !
 
 !Door methodsFor: 'operating' stamp: 'F C 10/8/2017 23:31:15'!
 openWhenOpened! !
@@ -1148,7 +1272,7 @@ opened
 
 !classDefinition: #ElevatorController category: #'Elevator-Ejercicio'!
 Object subclass: #ElevatorController
-	instanceVariableNames: 'cabin state floorsToGo currentFloor'
+	instanceVariableNames: 'cabin state'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Elevator-Ejercicio'!
@@ -1199,63 +1323,49 @@ isWorking
 	^state isWorking.! !
 
 
-!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/4/2017 21:44:06'!
+!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:39:50'!
 cabinDoorClosed
 
-	state doorClosed.! !
+	state cabinDoorClosed.! !
 
-!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/9/2017 00:10:25'!
-cabinDoorOpened
+!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:51:33'!
+cabinDoorClosedWhenIdle
 
-	floorsToGo isEmpty 
-		ifTrue: [ 
-			state := IdleControllerState for: self.
-			cabin doorOpenedWithNoFloorsToGo.
-		]
-		ifFalse: [
-			cabin doorOpenedWithFloorsToGo.
-		].
-	
-	"aca habria que mandarselo al state. El state me puede decir si tengo pisos para ir o no, osea si
-	esta idle o working??"
-	
-! !
+	ElevatorEmergency desynchronizedDoorSensor.! !
 
-!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/4/2017 22:39:42'!
-cabinOnFloor: floor
-
-	floor = (currentFloor + 1) ifFalse: [ ElevatorEmergency signal: 'Sensor de cabina desincronizado'].
-
-	currentFloor := floor.
-	floorsToGo remove: floor ifAbsent: [ ]. "dudoso que no haga nada. Si bien es porque floor puede ser uno por el que paso pero el cual nadie pidio ir"
-	cabin openDoorWhenOnFloor.! !
-
-!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/8/2017 23:55:10'!
-doorClosedWhenIdle
-
-	ElevatorEmergency signal: 'Sensor de puerta desincronizado'.! !
-
-!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/4/2017 21:50:25'!
-doorClosedWhenWorking
+!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/10/2017 21:14:17'!
+cabinDoorClosedWhenWorking
 
 	cabin doorClosed.! !
 
-!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/8/2017 23:59:14'!
-doorOpenedWhenIdle
+!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:40:23'!
+cabinDoorOpened
 
-	ElevatorEmergency signal: 'Sensor de puerta desincronizado'.! !
+	state cabinDoorOpened.! !
 
-!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/9/2017 00:11:02'!
-doorOpenedWhenWorking
+!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:51:42'!
+cabinDoorOpenedWhenIdle
 
-	cabin doorOpened.! !
+	ElevatorEmergency desynchronizedDoorSensor.! !
 
-!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/4/2017 20:51:47'!
+!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:40:28'!
+cabinDoorOpenedWhenWorking
+
+	cabin doorOpened.
+	cabin hasFloorsToGo ifFalse: [ state _ IdleControllerState for: self ].! !
+
+!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:12:08'!
+cabinOnFloor: floor
+
+	cabin onFloor: floor.
+	
+! !
+
+!ElevatorController methodsFor: 'sensor' stamp: 'F C 10/10/2017 22:14:21'!
 goUpPushedFromFloor: floor
 
 	state _ WorkingControllerState for: self.
-	cabin closeDoor.
-	floorsToGo add: floor.! !
+	cabin goUpPushedFromFloor: floor.! !
 
 !ElevatorController methodsFor: 'sensor' stamp: 'F C 10/4/2017 20:42:47'!
 waitForPeopleTimedOut
@@ -1263,10 +1373,10 @@ waitForPeopleTimedOut
 	cabin waitForPeopleTimedOut.! !
 
 
-!ElevatorController methodsFor: 'accessing' stamp: 'F C 10/3/2017 23:52:42'!
+!ElevatorController methodsFor: 'accessing' stamp: 'F C 10/10/2017 22:13:33'!
 cabinFloorNumber
 	
-	^currentFloor.! !
+	^cabin currentFloor.! !
 
 
 !ElevatorController methodsFor: 'operating' stamp: 'F C 10/4/2017 20:48:02'!
@@ -1296,11 +1406,10 @@ openCabinDoorWhenWorking
 	cabin openDoor.! !
 
 
-!ElevatorController methodsFor: 'initialize' stamp: 'F C 10/9/2017 00:08:24'!
+!ElevatorController methodsFor: 'initialize' stamp: 'F C 10/10/2017 22:05:33'!
 initialize
 
 	super initialize.
 	state _ IdleControllerState for: self.
-	floorsToGo _ OrderedCollection new.
 	cabin _ Cabin new.
-	currentFloor := 0.! !
+! !
