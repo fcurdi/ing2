@@ -671,10 +671,10 @@ openDoor
 	self subclassResponsibility.! !
 
 
-!CabinState methodsFor: 'initialization' stamp: 'F C 10/4/2017 19:54:11'!
+!CabinState methodsFor: 'initialization' stamp: 'F C 10/10/2017 23:01:47'!
 initializeWith: aCabin
 
-	cabin := aCabin.! !
+	cabin _ aCabin.! !
 
 
 !CabinState methodsFor: 'sensor' stamp: 'F C 10/10/2017 21:47:52'!
@@ -844,10 +844,10 @@ openCabinDoor
 	self subclassResponsibility.! !
 
 
-!ControllerState methodsFor: 'initialization' stamp: 'F C 10/4/2017 20:52:59'!
+!ControllerState methodsFor: 'initialization' stamp: 'F C 10/10/2017 23:04:20'!
 initializeWith: aController
 
-	controller := aController.! !
+	controller _ aController.! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -1091,10 +1091,10 @@ isOpening
 	^false.! !
 
 
-!DoorState methodsFor: 'initialization' stamp: 'F C 10/4/2017 21:57:52'!
+!DoorState methodsFor: 'initialization' stamp: 'F C 10/10/2017 23:02:31'!
 initializeWith: aDoor
 
-	door := aDoor.! !
+	door _ aDoor.! !
 
 
 !DoorState methodsFor: 'operating' stamp: 'F C 10/3/2017 23:35:35'!
@@ -1102,10 +1102,10 @@ close
 
 	self subclassResponsibility.! !
 
-!DoorState methodsFor: 'operating' stamp: 'F C 10/4/2017 00:03:24'!
+!DoorState methodsFor: 'operating' stamp: 'F C 10/10/2017 23:03:04'!
 open
 
-	^self subclassResponsibility.! !
+	self subclassResponsibility.! !
 
 
 !DoorState methodsFor: 'sensor' stamp: 'F C 10/8/2017 23:17:48'!
