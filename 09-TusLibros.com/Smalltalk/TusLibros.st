@@ -10,21 +10,19 @@ test01ANewCartIsAlwaysEmpty
 
 	self assert: cart isEmpty.! !
 
-!TusLibrosTest methodsFor: 'cart' stamp: 'F C 10/29/2017 19:59:36'!
-test02
+!TusLibrosTest methodsFor: 'cart' stamp: 'FC_LR 10/30/2017 18:27:55'!
+test02WhenAddingAnItemToACartThenTheCartContainsIt
 
 	cart add: isbnInCatalog.
 	
-	self deny: cart isEmpty.
 	self assert: cart size equals: 1.
 	self assert: (cart includes: isbnInCatalog).! !
 
-!TusLibrosTest methodsFor: 'cart' stamp: 'F C 10/29/2017 18:36:50'!
-test03
+!TusLibrosTest methodsFor: 'cart' stamp: 'FC_LR 10/30/2017 18:28:00'!
+test03WhenAddingMultipleItemsToACartThenTheCartContainsThem
 
 	cart add: 2 of: isbnInCatalog.
 	
-	self deny: cart isEmpty.
 	self assert: cart size equals: 2.
 	self assert: (cart quantiyOf: isbnInCatalog) equals: 2.! !
 
@@ -47,14 +45,10 @@ test05AddingAnInvalidQunatityOfAnItemRaisesAnException
 	].! !
 
 
-!TusLibrosTest methodsFor: 'cashier' stamp: 'F C 10/29/2017 19:38:20'!
+!TusLibrosTest methodsFor: 'cashier' stamp: 'FC_LR 10/30/2017 20:20:00'!
 test06CannotCheckoutAnEmptyCart
 
-	| cashier |
-
-	cashier _ Cashier withCart: cart withCreditCard: notExpiredCreditCard andSalesBook: salesBook on: Date today.
-	
-	self should: [ cashier checkout]
+	self should: [ Cashier withCart: cart withCreditCard: notExpiredCreditCard andSalesBook: salesBook on: FixedGregorianDate today. ]
 	 	  raise: Error - MessageNotUnderstood 
 		  withExceptionDo: [ :anError | 
 			self assert: anError messageText  equals: 'cannot create an empty cart'.
@@ -62,15 +56,12 @@ test06CannotCheckoutAnEmptyCart
 		  ].
 	! !
 
-!TusLibrosTest methodsFor: 'cashier' stamp: 'F C 10/29/2017 19:38:36'!
+!TusLibrosTest methodsFor: 'cashier' stamp: 'FC_LR 10/30/2017 20:20:16'!
 test07CannotCheckoutWithExpiredCreditCard
 
-	| cashier |
-
 	cart add: isbnInCatalog .
-	cashier _  Cashier withCart: cart withCreditCard: expiredCreditCard andSalesBook: salesBook on: Date today.
 	
-	self should: [ cashier checkout ]
+	self should: [ Cashier withCart: cart withCreditCard: expiredCreditCard andSalesBook: salesBook on:  FixedGregorianDate today. ]
 	 	  raise: Error - MessageNotUnderstood 
 		  withExceptionDo: [ :anError | 
 			self assert: anError messageText  equals: 'cannot checkout with expired credit card'.
@@ -78,14 +69,14 @@ test07CannotCheckoutWithExpiredCreditCard
 		  ].
 	! !
 
-!TusLibrosTest methodsFor: 'cashier' stamp: 'F C 10/29/2017 20:02:38'!
+!TusLibrosTest methodsFor: 'cashier' stamp: 'FC_LR 10/30/2017 18:20:16'!
 test08CheckoutRegistersTheSaleCorrectlyInTheSalesBook
 
 	| cashier receipt expectedTotal |
 	
 	cart add: 2 of: isbnInCatalog.
 	cart add: 1 of: anotherIsbnInCatalog.
-	cashier _ Cashier withCart: cart withCreditCard: notExpiredCreditCard andSalesBook: salesBook on: Date today.
+	cashier _ Cashier withCart: cart withCreditCard: notExpiredCreditCard andSalesBook: salesBook on:  FixedGregorianDate today.
 	
 	receipt _ cashier checkout.
 	expectedTotal _ ((catalog at: isbnInCatalog) * 2) + (catalog at: anotherIsbnInCatalog). 
@@ -95,11 +86,12 @@ test08CheckoutRegistersTheSaleCorrectlyInTheSalesBook
 	self assert: receipt amount equals: expectedTotal.
 	self assert: (receipt quantityFor: isbnInCatalog) equals: 2.
 	self assert: (receipt quantityFor: anotherIsbnInCatalog) equals: 1.	
+	self assert: receipt purchases size equals: 3.
 
 ! !
 
 
-!TusLibrosTest methodsFor: 'setup' stamp: 'F C 10/29/2017 19:34:47'!
+!TusLibrosTest methodsFor: 'setup' stamp: 'FC_LR 10/30/2017 18:17:30'!
 setUp
 
 	| expiredDate notExpiredDate |
@@ -111,8 +103,8 @@ setUp
 	catalog at: isbnInCatalog put: 10.
 	catalog at: anotherIsbnInCatalog put: 30.
 	cart _ Cart with: catalog.
-	expiredDate _ (Date year: Date today year yearNumber month: Date today month previous monthIndex day: 1) month.
-	notExpiredDate _ (Date year: Date today year yearNumber month: Date today month monthIndex day: 1) month.
+	expiredDate _ GregorianMonthOfYear current previous.
+	notExpiredDate _ GregorianMonthOfYear current.
 	notExpiredCreditCard _ CreditCard withOwner: 'pepe' andNumber: '1234678956784235'  andExpiryDate: notExpiredDate.
 	expiredCreditCard _ CreditCard withOwner: 'pepe' andNumber: '1234678956784235'  andExpiryDate: expiredDate.
 	salesBook _ OrderedCollection new.! !
@@ -158,10 +150,10 @@ isEmpty
 	
 	^items isEmpty.! !
 
-!Cart methodsFor: 'as yet unclassified' stamp: 'F C 10/29/2017 18:52:26'!
-itemsDo: aBlockClosure
+!Cart methodsFor: 'as yet unclassified' stamp: 'FC_LR 10/30/2017 20:07:20'!
+items
 
-	items do: [ :item | aBlockClosure value: item ].! !
+	^items copy.! !
 
 !Cart methodsFor: 'as yet unclassified' stamp: 'FC_LR 10/26/2017 20:20:10'!
 quantiyOf: anItem 
@@ -172,6 +164,13 @@ quantiyOf: anItem
 size
 	
 	^items size.! !
+
+!Cart methodsFor: 'as yet unclassified' stamp: 'FC_LR 10/30/2017 20:11:50'!
+total
+
+	^items 
+		inject: 0
+		into: [ :sum :item |  sum + (catalog at:item) ].! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -192,36 +191,24 @@ Object subclass: #Cashier
 	poolDictionaries: ''
 	category: 'TusLibros'!
 
-!Cashier methodsFor: 'as yet unclassified' stamp: 'F C 10/29/2017 19:56:21'!
+!Cashier methodsFor: 'as yet unclassified' stamp: 'FC_LR 10/30/2017 20:17:20'!
 checkout
 
-	| catalog total purchases receipt |
-
-	cart isEmpty ifTrue: [ self error: 'cannot create an empty cart' ].
-
-	(creditCard expiryDate year yearNumber >= date year yearNumber and: [ creditCard expiryDate monthIndex >= date month monthIndex]) 
-		ifFalse: [ self error: 'cannot checkout with expired credit card' ].
-		
-	catalog _ cart catalog.	
-	total _ 0.
-	purchases _ OrderedCollection new.
-	cart itemsDo: [ :item | 
-		total _ total + (catalog at: item).
-		purchases add: item.
-	].
-	self debit.
-	receipt _ Receipt with: total andPurchases: purchases.
+	| total receipt |
+	
+	total _ cart total.
+	self debit: total from: creditCard.
+	receipt _ Receipt with: total andPurchases: cart items.
 	salesBook add: receipt.
 	^receipt.
 	
 	! !
 
-!Cashier methodsFor: 'as yet unclassified' stamp: 'F C 10/29/2017 19:11:29'!
-debit
-! !
+!Cashier methodsFor: 'as yet unclassified' stamp: 'FC_LR 10/30/2017 18:12:43'!
+debit: total from: creditCard! !
 
-!Cashier methodsFor: 'as yet unclassified' stamp: 'F C 10/29/2017 19:31:08'!
-initializeWithCart: aCart andCreditCard: aCreditCard andSalesBook: aSalesBook andDate: aDate
+!Cashier methodsFor: 'as yet unclassified' stamp: 'FC_LR 10/30/2017 18:25:49'!
+initializeWithCart: aCart andCreditCard: aCreditCard andSalesBook: aSalesBook on: aDate
 
 	cart _ aCart.
 	creditCard _ aCreditCard.
@@ -234,10 +221,14 @@ initializeWithCart: aCart andCreditCard: aCreditCard andSalesBook: aSalesBook an
 Cashier class
 	instanceVariableNames: ''!
 
-!Cashier class methodsFor: 'as yet unclassified' stamp: 'F C 10/29/2017 19:30:10'!
+!Cashier class methodsFor: 'as yet unclassified' stamp: 'FC_LR 10/30/2017 20:24:09'!
 withCart: aCart withCreditCard: aCreditCard andSalesBook: aSalesBook on: aDate
 
-	^self new initializeWithCart: aCart andCreditCard: aCreditCard andSalesBook: aSalesBook andDate: aDate.! !
+	aCart isEmpty ifTrue: [ self error: 'cannot create an empty cart' ].
+	
+	(aCreditCard isExpiredOn: aDate) ifTrue: [ self error: 'cannot checkout with expired credit card' ].
+
+	^self new initializeWithCart: aCart andCreditCard: aCreditCard andSalesBook: aSalesBook on: aDate.! !
 
 
 !classDefinition: #CreditCard category: #TusLibros!
@@ -247,17 +238,17 @@ Object subclass: #CreditCard
 	poolDictionaries: ''
 	category: 'TusLibros'!
 
-!CreditCard methodsFor: 'as yet unclassified' stamp: 'F C 10/29/2017 19:24:22'!
-expiryDate
-
-	^expiryDate.! !
-
 !CreditCard methodsFor: 'as yet unclassified' stamp: 'F C 10/29/2017 19:23:41'!
 initializeWith: anOwner andNumber: aNumber andExpiryDate: aMonthOfYear
 
 	owner _ anOwner.
 	number _ aNumber.
 	expiryDate _ aMonthOfYear.! !
+
+!CreditCard methodsFor: 'as yet unclassified' stamp: 'FC_LR 10/30/2017 20:22:39'!
+isExpiredOn: aDate
+
+	^expiryDate  < aDate.! !
 
 !CreditCard methodsFor: 'as yet unclassified' stamp: 'F C 10/29/2017 19:24:04'!
 number
