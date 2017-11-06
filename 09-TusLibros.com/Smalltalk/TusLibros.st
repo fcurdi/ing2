@@ -1,6 +1,6 @@
 !classDefinition: #TusLibrosTest category: #TusLibros!
 TestCase subclass: #TusLibrosTest
-	instanceVariableNames: 'isbnInCatalog isbnNotInCatalog catalog cart creditCardNumber anotherIsbnInCatalog notExpiredCreditCard expiredCreditCard salesBook merchantProcessorBehaviour restInterface validClientId invalidClientId validPassword invalidPassword nonExistentCartId emptyCartId'
+	instanceVariableNames: 'isbnInCatalog isbnNotInCatalog catalog cart creditCardNumber anotherIsbnInCatalog notExpiredCreditCard expiredCreditCard salesBook merchantProcessorBehaviour restInterface validClientId invalidClientId validPassword invalidPassword nonExistentCartId emptyCartId clock'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'TusLibros'!
@@ -91,7 +91,7 @@ test08CheckoutRegistersTheSaleCorrectlyInTheSalesBook
 ! !
 
 
-!TusLibrosTest methodsFor: 'setup' stamp: 'FC_LR 11/5/2017 18:24:28'!
+!TusLibrosTest methodsFor: 'setup' stamp: 'FC_LR 11/5/2017 20:28:20'!
 setUp
 
 	| expiredDate notExpiredDate clientsData |
@@ -117,7 +117,8 @@ setUp
 	invalidPassword _ 'wrongPassword'.
 	clientsData _ Dictionary new.
 	clientsData at: validClientId put: validPassword.
-	restInterface _ RestInterface withClientIds: clientsData andCatalog: catalog andMerchantProcessor: self.
+	clock _ ChangeableClock new.
+	restInterface _ RestInterface withClientIds: clientsData andCatalog: catalog andMerchantProcessor: self andClock: clock.
 	emptyCartId _ restInterface createCartWithClientId: validClientId andPassword: validPassword.! !
 
 
@@ -182,22 +183,22 @@ test11CheckoutInteractsWithMerchantProcessor
 ! !
 
 
-!TusLibrosTest methodsFor: 'rest interface' stamp: 'FC_LR 11/5/2017 18:19:12'!
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'FC_LR 11/5/2017 18:43:09'!
 test12CannotCreateCartIfClientIdIsInvalid
 	
 	self should: [ restInterface createCartWithClientId: invalidClientId andPassword: ''.]
 	 	  raise: Error - MessageNotUnderstood 
 		  withExceptionDo: [ :anError | 
-			self assert: anError messageText  equals: 'cannot create cart if user is invalid'.
+			self assert: anError messageText  equals: 'invalid credentials'.
 		  ].! !
 
-!TusLibrosTest methodsFor: 'rest interface' stamp: 'FC_LR 11/5/2017 18:19:45'!
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'FC_LR 11/5/2017 18:43:14'!
 test13CannotCreateCartWithValidClientIdButInvalidPassword
 	
 	self should: [ restInterface createCartWithClientId: validClientId andPassword: invalidPassword.]
 	 	  raise: Error - MessageNotUnderstood 
 		  withExceptionDo: [ :anError | 
-			self assert: anError messageText  equals: 'cannot create cart if password is wrong'.
+			self assert: anError messageText  equals: 'invalid credentials'.
 		  ].! !
 
 !TusLibrosTest methodsFor: 'rest interface' stamp: 'FC_LR 11/5/2017 18:24:46'!
@@ -213,6 +214,10 @@ test15CannotAddItemToNonexistentCart
 		withExceptionDo: [ :anError | 
 			self assert: anError messageText  equals: 'cannot add item to nonexistent cart'.
 	].
+! !
+
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'FC_LR 11/2/2017 21:13:25'!
+test15CannotCreateCartIfClientIdIsInvalid
 ! !
 
 !TusLibrosTest methodsFor: 'rest interface' stamp: 'FC_LR 11/5/2017 18:25:05'!
@@ -357,25 +362,25 @@ test25CheckoutAndCheckout
 	
 ! !
 
-!TusLibrosTest methodsFor: 'rest interface' stamp: 'FC_LR 11/5/2017 18:29:37'!
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'FC_LR 11/5/2017 18:43:48'!
 test26CannotListPurchasesIfClientIdIsInvalid
 
 	
 	self should: [ restInterface listPurchases: invalidClientId withPassword: ''.]
 		raise: Error - MessageNotUnderstood 
 		withExceptionDo: [ :anError | 
-			self assert: anError messageText  equals: 'cannot list purchases if user is invalid'.
+			self assert: anError messageText  equals: 'invalid credentials'.
 	].
 ! !
 
-!TusLibrosTest methodsFor: 'rest interface' stamp: 'FC_LR 11/5/2017 18:29:57'!
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'FC_LR 11/5/2017 18:43:54'!
 test27CannotListPurchasesWithValidClientIdButInvalidPassword
 	
 	
 	self should: [ restInterface listPurchases: validClientId withPassword: invalidPassword .]
 		raise: Error - MessageNotUnderstood 
 		withExceptionDo: [ :anError | 
-			self assert: anError messageText  equals: 'cannot list purchases if password is wrong'.
+			self assert: anError messageText  equals: 'invalid credentials'.
 	].
 ! !
 
@@ -396,6 +401,66 @@ test28ListPurchases
 	self assert: (purchases includes: receipt).
 	
 ! !
+
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'FC_LR 11/5/2017 20:43:47'!
+test29CannotInteractWithExpiredCart
+
+	| cartId |
+	
+	cartId _ emptyCartId.
+	clock advance: (Duration minutes: 30).
+	
+	self should: [ restInterface addToCartWithId: cartId andIsbn: isbnInCatalog quantity: 1. ]
+		  raise:  Error - MessageNotUnderstood
+		  withExceptionDo: [ :anError |
+			self assert: anError messageText equals: 'invalid cart id'
+	].
+
+	self should: [ restInterface addToCartWithId: cartId andIsbn: isbnInCatalog  quantity: 1 ]
+		  raise:  Error - MessageNotUnderstood
+		  withExceptionDo: [ :anError |
+			self assert: anError messageText equals: 'invalid cart id'
+	].
+
+	self should: [ restInterface listCart: cartId ]
+		  raise:  Error - MessageNotUnderstood
+		  withExceptionDo: [ :anError |
+			self assert: anError messageText equals: 'invalid cart id'
+	].! !
+
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'FC_LR 11/5/2017 21:08:19'!
+test30CartTimeToLiveResetsWithEachOperation
+	
+	| doTest cartId |
+	
+	cartId _ emptyCartId.
+	
+	doTest _ [ :aBlockClosure |
+			
+			clock advance: (Duration minutes: 20).
+	
+			aBlockClosure value.
+	
+			clock advance: (Duration minutes: 20).
+	
+			self assert: (restInterface listCart: cartId) isEmpty.	
+			
+			clock reset.			
+	].
+
+	doTest value: [ restInterface addToCartWithId: cartId andIsbn: isbnInCatalog quantity: 1].
+	doTest value: [ restInterface listCart: cartId ].
+
+	
+	
+
+	
+	
+
+	
+	
+	
+	! !
 
 
 !classDefinition: #Cart category: #TusLibros!
@@ -522,6 +587,34 @@ withCart: aCart withCreditCard: aCreditCard andSalesBook: aSalesBook andMerchant
 	^self new initializeWithCart: aCart andCreditCard: aCreditCard andSalesBook: aSalesBook andMerchantProcessor: aMerchantProcessor on: aDate.! !
 
 
+!classDefinition: #ChangeableClock category: #TusLibros!
+Object subclass: #ChangeableClock
+	instanceVariableNames: 'now'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'TusLibros'!
+
+!ChangeableClock methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 20:41:43'!
+advance: aDuration
+
+	now _ DateAndTime fromSeconds: now unixTimeSeconds + aDuration seconds. ! !
+
+!ChangeableClock methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 20:25:04'!
+initialize
+
+	now _ DateAndTime now.! !
+
+!ChangeableClock methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 20:30:26'!
+now
+
+	^now.! !
+
+!ChangeableClock methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 21:00:21'!
+reset
+
+	now _ DateAndTime now.! !
+
+
 !classDefinition: #CreditCard category: #TusLibros!
 Object subclass: #CreditCard
 	instanceVariableNames: 'owner number expiryDate'
@@ -610,17 +703,19 @@ with: aNumber andPurchases: aCollectionOfPurchases
 
 !classDefinition: #RestInterface category: #TusLibros!
 Object subclass: #RestInterface
-	instanceVariableNames: 'clientsData carts catalog nextCartId salesBook merchantProcessor purchasesByUser userByCart'
+	instanceVariableNames: 'clientsData carts catalog nextCartId salesBook merchantProcessor purchasesByUser userByCart clock cartsTtl'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'TusLibros'!
 
-!RestInterface methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 16:04:59'!
+!RestInterface methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 21:08:45'!
 addToCartWithId: aCartId andIsbn: anIsbn quantity: aQuantity 
 	
 	| cart |
 	
-	cart _ carts at: aCartId ifAbsent: [self error: 'cannot add item to nonexistent cart'].
+	self assertValidCart: aCartId.
+	
+	cart _ carts at: aCartId.
 	
 	(catalog includesKey: anIsbn) ifFalse: [self error: 'cannot add item with isbn from other editorial'].
 	
@@ -628,15 +723,49 @@ addToCartWithId: aCartId andIsbn: anIsbn quantity: aQuantity
 	
 	cart add: aQuantity of: anIsbn.
 	
+	self refreshCartTtl: aCartId.
+	
 	
 ! !
 
-!RestInterface methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 18:07:00'!
+!RestInterface methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 21:08:53'!
+assertValidCart: cartId
+
+	| creationDate |
+	
+		self halt.
+	
+	(carts includesKey: cartId) ifFalse: [self error: 'invalid cart id'].
+
+	creationDate _ cartsTtl at: cartId.
+	
+	(creationDate unixTimeSeconds - clock now unixTimeSeconds) > 1800 ifTrue: [
+		carts removeKey: cartId.
+		userByCart removeKey: cartId.
+		cartsTtl removeKey: cartId.
+		self error: 'invalid cart id'.
+	]. 
+
+
+
+! !
+
+!RestInterface methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 18:43:34'!
+checkCredentials: clientId and: password
+
+	| clientPassword |
+	
+	clientPassword _ clientsData at: clientId ifAbsent: [ self error: 'invalid credentials'].
+	clientPassword = password ifFalse: [ self error: 'invalid credentials'].! !
+
+!RestInterface methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 20:51:53'!
 checkoutCart: aCartId andCreditCardNumber: aCreditCardNumber andExpirationDate: anExpirationDate andOwner: anOwner
 
 	| cart  creditCard cashier receipt clientId purchases |
 	
-	cart _ carts at: aCartId ifAbsent: [self error: 'cannot checkout a nonexistent cart'.].
+	self assertValidCart: aCartId.
+	
+	cart _ carts at: aCartId.
 	
 	creditCard _ CreditCard withOwner: anOwner andNumber: aCreditCardNumber andExpiryDate: anExpirationDate.
 
@@ -645,6 +774,8 @@ checkoutCart: aCartId andCreditCardNumber: aCreditCardNumber andExpirationDate: 
 	receipt _ cashier checkout.
 	
 	carts removeKey: aCartId.
+	cartsTtl removeKey: aCartId.
+	userByCart removeKey: aCartId.
 	
 	clientId _ userByCart at: aCartId.
 	purchases _ purchasesByUser at: clientId ifAbsent: [ purchasesByUser at: clientId put: (OrderedCollection new).].
@@ -652,14 +783,12 @@ checkoutCart: aCartId andCreditCardNumber: aCreditCardNumber andExpirationDate: 
 	
 	^receipt.! !
 
-!RestInterface methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 18:01:35'!
+!RestInterface methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 19:10:14'!
 createCartWithClientId: aClientId andPassword: aPassword 
 
-	| clientPassword cart cartId |
+	| cart cartId |
 	
-	clientPassword _ clientsData at: aClientId ifAbsent: [ self error: 'cannot create cart if user is invalid'].
-	
-	clientPassword = aPassword ifFalse: [ self error: 'cannot create cart if password is wrong'].
+	self checkCredentials: aClientId and: aPassword.
 	
 	cart _ Cart with: catalog.
 	cartId _ self generateCartId.
@@ -667,6 +796,7 @@ createCartWithClientId: aClientId andPassword: aPassword
 	carts at: cartId put: cart.
 	
 	userByCart at: cartId put: aClientId.
+	cartsTtl at: cartId put: clock now.
 	
 	^cartId.! !
 
@@ -682,8 +812,8 @@ generateCartId
 	
 	^ cartId.! !
 
-!RestInterface methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 18:00:49'!
-initilizeWithClientIds: aClientsData andCatalog: aCatalog andMerchantProcessor: aMerchantProcessor.
+!RestInterface methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 20:33:48'!
+initilizeWithClientIds: aClientsData andCatalog: aCatalog andMerchantProcessor: aMerchantProcessor andClock: aClock
 	
 	clientsData _ aClientsData.
 	carts _ Dictionary new.
@@ -693,23 +823,33 @@ initilizeWithClientIds: aClientsData andCatalog: aCatalog andMerchantProcessor: 
 	merchantProcessor _ aMerchantProcessor.
 	userByCart _ Dictionary new.
 	purchasesByUser _ Dictionary new.
+	clock _ aClock.
+	cartsTtl _ Dictionary new.
 	! !
 
-!RestInterface methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 16:12:06'!
+!RestInterface methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 20:52:11'!
 listCart: aCartId
-	
-	^(carts at: aCartId ifAbsent: [self error: 'cannot list nonexistent cart']) items.! !
 
-!RestInterface methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 18:04:44'!
+	self assertValidCart: aCartId.
+	self refreshCartTtl: aCartId.
+	
+	^(carts at: aCartId) items.! !
+
+!RestInterface methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 19:34:33'!
 listPurchases: aClientId withPassword: aPassword 
-	
-	| clientPassword  |
-	
-	clientPassword _ clientsData at: aClientId ifAbsent: [ self error: 'cannot list purchases if user is invalid'].
-	
-	clientPassword = aPassword ifFalse: [ self error: 'cannot list purchases if password is wrong'].
+
+	self checkCredentials: aClientId and: aPassword.
 	
 	^purchasesByUser at: aClientId.! !
+
+!RestInterface methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 20:50:49'!
+refreshCartTtl: cartId
+
+	cartsTtl at: cartId put: clock now.
+
+	
+
+	! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -717,7 +857,7 @@ listPurchases: aClientId withPassword: aPassword
 RestInterface class
 	instanceVariableNames: ''!
 
-!RestInterface class methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 17:17:53'!
-withClientIds: clientIds andCatalog: aCatalog andMerchantProcessor: aMerchantProcessor
+!RestInterface class methodsFor: 'as yet unclassified' stamp: 'FC_LR 11/5/2017 18:59:08'!
+withClientIds: clientIds andCatalog: aCatalog andMerchantProcessor: aMerchantProcessor andClock: aClock
 	
-	^ self new initilizeWithClientIds: clientIds andCatalog: aCatalog andMerchantProcessor: aMerchantProcessor.! !
+	^ self new initilizeWithClientIds: clientIds andCatalog: aCatalog andMerchantProcessor: aMerchantProcessor andClock: aClock! !
