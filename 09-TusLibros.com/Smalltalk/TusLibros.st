@@ -91,10 +91,10 @@ test08CheckoutRegistersTheSaleCorrectlyInTheSalesBook
 ! !
 
 
-!TusLibrosTest methodsFor: 'setup' stamp: 'F C 11/6/2017 01:10:04'!
+!TusLibrosTest methodsFor: 'setup' stamp: 'F C 11/6/2017 01:33:18'!
 setUp
 
-	| expiredDate notExpiredDate clientInfo |
+	| clientInfo |
 	
 	isbnInCatalog _ '123'.
 	anotherIsbnInCatalog _ '789'.
@@ -105,10 +105,8 @@ setUp
 	
 	cart _ Cart with: catalog.
 	
-	expiredDate _ GregorianMonthOfYear current previous.
-	notExpiredDate _ GregorianMonthOfYear current.
-	notExpiredCreditCard _ CreditCard withOwner: 'pepe' andNumber: '1234678956784235'  andExpirationDate: notExpiredDate.
-	expiredCreditCard _ CreditCard withOwner: 'pepe' andNumber: '1234678956784235'  andExpirationDate: expiredDate.
+	notExpiredCreditCard _ CreditCard withOwner: 'pepe' andNumber: '1234678956784235'  andExpirationDate: GregorianMonthOfYear current.
+	expiredCreditCard _ CreditCard withOwner: 'pepe' andNumber: '1234678956784235'  andExpirationDate: GregorianMonthOfYear current previous.
 	
 	salesBook _ OrderedCollection new.
 	merchantProcessorBehaviour _ [:amount :creditCard | ].
@@ -122,7 +120,8 @@ setUp
 	clientInfo at: validClientId put: validPassword.
 	clock _ ChangeableClock new.
 	restInterface _ RestInterface withClientInfo: clientInfo andCatalog: catalog andMerchantProcessor: self andClock: clock.
-	emptyCartId _ restInterface createCartWithClientId: validClientId andPassword: validPassword.! !
+	emptyCartId _ restInterface createCartWithClientId: validClientId andPassword: validPassword.
+	! !
 
 
 !TusLibrosTest methodsFor: 'merchant processor simulation' stamp: 'F C 11/6/2017 00:58:54'!
@@ -186,37 +185,34 @@ test11CheckoutInteractsWithMerchantProcessor
 ! !
 
 
-!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 00:59:23'!
+!TusLibrosTest methodsFor: 'asserts' stamp: 'F C 11/6/2017 01:37:44'!
+assertThat: aBlockClosure raisesErrorMessage: aMessage
+
+	self should: aBlockClosure 
+		raise: Error - MessageNotUnderstood 
+		withExceptionDo: [ :anError | self assert: anError messageText  equals: aMessage ].
+	! !
+
+
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:38:19'!
 test12CannotCreateCartIfClientIdIsInvalid
 	
-	self should: [ restInterface createCartWithClientId: invalidClientId andPassword: ''.]
-	 	  raise: Error - MessageNotUnderstood 
-		  withExceptionDo: [ :anError | 
-			self assert: anError messageText  equals: RestInterface invalidCredentialsErrorDescription.
-		  ].! !
+	self assertThat: [ restInterface createCartWithClientId: invalidClientId andPassword: ''.] raisesErrorMessage: RestInterface invalidCredentialsErrorDescription.! !
 
-!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 00:59:32'!
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:38:52'!
 test13CannotCreateCartWithValidClientIdButInvalidPassword
 	
-	self should: [ restInterface createCartWithClientId: validClientId andPassword: invalidPassword.]
-	 	  raise: Error - MessageNotUnderstood 
-		  withExceptionDo: [ :anError | 
-			self assert: anError messageText  equals: RestInterface invalidCredentialsErrorDescription.
-		  ].! !
+	self assertThat: [ restInterface createCartWithClientId: validClientId andPassword: invalidPassword.] raisesErrorMessage: RestInterface invalidCredentialsErrorDescription.! !
 
 !TusLibrosTest methodsFor: 'rest interface' stamp: 'FC_LR 11/5/2017 18:24:46'!
 test14CreateCardWithValidUserAndPasswordResultsInAnEmptyCart
 	
 	self assert: (restInterface listCart: emptyCartId) isEmpty.! !
 
-!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 00:59:46'!
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:39:20'!
 test15CannotAddItemToNonexistentCart
 	
-	self should: [ restInterface addTo: nonExistentCartId quantity: 1 of: isbnInCatalog.]
-		raise: Error - MessageNotUnderstood 
-		withExceptionDo: [ :anError | 
-			self assert: anError messageText  equals: RestInterface invalidCartIdErrorDescription.
-	].
+	self assertThat: [ restInterface addTo: nonExistentCartId quantity: 1 of: isbnInCatalog.] raisesErrorMessage: RestInterface invalidCartIdErrorDescription.
 ! !
 
 !TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:12:05'!
@@ -254,14 +250,10 @@ test18WhenAddingMultipleItemToACartThenTheCartContainsThem
 	
 ! !
 
-!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:01:07'!
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:40:00'!
 test19CannotListANonexistentCart
 
-	self should: [ restInterface listCart: nonExistentCartId .]
-		raise: Error - MessageNotUnderstood 
-		withExceptionDo: [ :anError | 
-			self assert: anError messageText  equals: RestInterface invalidCartIdErrorDescription.
-	].
+	self assertThat: [ restInterface listCart: nonExistentCartId.] raisesErrorMessage: RestInterface invalidCartIdErrorDescription.
 ! !
 
 !TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:13:04'!
@@ -279,44 +271,38 @@ test20ListCartShowsCartContentsCorrectly
 	self assert: (listCart occurrencesOf: anotherIsbnInCatalog ) equals: 1.
 ! !
 
-!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:01:13'!
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:40:40'!
 test21CannotCheckoutANonexistentCart
 	
-	self should: [ restInterface checkoutCart:  nonExistentCartId andCreditCardNumber: notExpiredCreditCard
+	self assertThat: [ restInterface checkoutCart:  nonExistentCartId
+						 andCreditCardNumber: notExpiredCreditCard
 						number andExpirationDate: notExpiredCreditCard
-						expirationDate andOwner: notExpiredCreditCard owner.]
-		raise: Error - MessageNotUnderstood 
-		withExceptionDo: [ :anError | 
-			self assert: anError messageText  equals: RestInterface invalidCartIdErrorDescription.
-	].
+						expirationDate andOwner: notExpiredCreditCard owner.
+		] raisesErrorMessage: RestInterface invalidCartIdErrorDescription.
 ! !
 
-!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:01:28'!
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:41:10'!
 test22CannotCheckoutAnEmptyCart
 
-	self should: [ restInterface checkoutCart: emptyCartId andCreditCardNumber: notExpiredCreditCard
+	self assertThat: [ restInterface checkoutCart: emptyCartId 
+						andCreditCardNumber: notExpiredCreditCard
 						number andExpirationDate: notExpiredCreditCard
-						expirationDate andOwner: notExpiredCreditCard owner.]
-		raise: Error - MessageNotUnderstood 
-		withExceptionDo: [ :anError | 
-			self assert: anError messageText  equals: Cashier checkoutEmptyCartErrorDescription.
-	].
+						expirationDate andOwner: notExpiredCreditCard owner.
+	] raisesErrorMessage: Cashier checkoutEmptyCartErrorDescription.
 ! !
 
-!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:01:37'!
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:41:44'!
 test23CannotCheckoutWithExpiredCreditCard
 
 	| cartId |
 	cartId _ emptyCartId.
 	restInterface addTo: cartId quantity: 2 of: isbnInCatalog.
 	
-	self should: [ restInterface checkoutCart: cartId andCreditCardNumber: expiredCreditCard
+	self assertThat: [ restInterface checkoutCart: cartId 
+						andCreditCardNumber: expiredCreditCard
 						number andExpirationDate: expiredCreditCard
-						expirationDate andOwner: expiredCreditCard owner.]
-		raise: Error - MessageNotUnderstood 
-		withExceptionDo: [ :anError | 
-			self assert: anError messageText  equals: Cashier checkoutWithExpiredCreditCardErrorDescription.
-	].
+						expirationDate andOwner: expiredCreditCard owner.
+	] raisesErrorMessage: Cashier checkoutWithExpiredCreditCardErrorDescription.
 	! !
 
 !TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:13:24'!
@@ -337,7 +323,7 @@ test24CheckoutCalculatesTotalCorrectly
 	self assert: receipt purchases size equals: 2.
 ! !
 
-!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:14:01'!
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:42:10'!
 test25CannotCheckoutACartThatWasAlreadyPaidFor
 
 	| cartId |
@@ -348,39 +334,28 @@ test25CannotCheckoutACartThatWasAlreadyPaidFor
 	restInterface checkoutCart: cartId andCreditCardNumber: notExpiredCreditCard 
 		number andExpirationDate: notExpiredCreditCard expirationDate andOwner: notExpiredCreditCard owner.
 
-	self should: [ restInterface checkoutCart: cartId andCreditCardNumber: notExpiredCreditCard 
+	self assertThat: [ restInterface checkoutCart: cartId 
+						andCreditCardNumber: notExpiredCreditCard 
 						number andExpirationDate: notExpiredCreditCard
-						expirationDate andOwner: notExpiredCreditCard owner.]
-		raise: Error - MessageNotUnderstood 
-		withExceptionDo: [ :anError | 
-			self assert: anError messageText  equals: RestInterface invalidCartIdErrorDescription.
-	].
-	
+						expirationDate andOwner: notExpiredCreditCard owner.
+	] raisesErrorMessage: RestInterface invalidCartIdErrorDescription.
 	
 	
 	
 ! !
 
-!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:02:00'!
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:42:27'!
 test26CannotListPurchasesIfClientIdIsInvalid
 
 	
-	self should: [ restInterface listPurchases: invalidClientId withPassword: ''.]
-		raise: Error - MessageNotUnderstood 
-		withExceptionDo: [ :anError | 
-			self assert: anError messageText  equals: RestInterface invalidCredentialsErrorDescription.
-	].
+	self assertThat: [ restInterface listPurchases: invalidClientId withPassword: ''.] raisesErrorMessage: RestInterface invalidCredentialsErrorDescription.
 ! !
 
-!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:02:08'!
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:42:42'!
 test27CannotListPurchasesWithValidClientIdButInvalidPassword
 	
 	
-	self should: [ restInterface listPurchases: validClientId withPassword: invalidPassword .]
-		raise: Error - MessageNotUnderstood 
-		withExceptionDo: [ :anError | 
-			self assert: anError messageText  equals: RestInterface invalidCredentialsErrorDescription.
-	].
+	self assertThat: [ restInterface listPurchases: validClientId withPassword: invalidPassword .] raisesErrorMessage: RestInterface invalidCredentialsErrorDescription.
 ! !
 
 !TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:14:50'!
@@ -401,44 +376,30 @@ test28ListPurchasesShowsAllPurchasesForAClientID
 	
 ! !
 
-!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:02:23'!
+!TusLibrosTest methodsFor: 'rest interface' stamp: 'F C 11/6/2017 01:48:31'!
 test29CannotInteractWithExpiredCart
 
-	| performForExpiredCart |
+	| assertForExpiredCart |
 	
-	performForExpiredCart _ [ :aBlockClosure | 
+	assertForExpiredCart _ [ :aBlockClosure | 
 		| cartId |
 		cartId _ restInterface createCartWithClientId: validClientId andPassword: validPassword.
 		clock advance: (Duration minutes: 30).
-		aBlockClosure value: cartId.
+		self assertThat: [ aBlockClosure value: cartId ]  raisesErrorMessage: RestInterface invalidCartIdErrorDescription..
 		clock reset.
 	 ].
 	
-	performForExpiredCart value: [ :cartId|
-		self should: [ restInterface addTo: cartId quantity: 1 of: isbnInCatalog. ]
-			  raise:  Error - MessageNotUnderstood
-		  	  withExceptionDo: [ :anError |
-				self assert: anError messageText equals: RestInterface invalidCartIdErrorDescription.
-		].
-	].
+	assertForExpiredCart value: [ :cartId | restInterface addTo: cartId quantity: 1 of: isbnInCatalog. ].
 	
+	assertForExpiredCart value: [ :cartId |  
+		restInterface 
+			checkoutCart: cartId 
+			andCreditCardNumber: notExpiredCreditCard number 
+			andExpirationDate: notExpiredCreditCard expirationDate 
+			andOwner: notExpiredCreditCard owner
+	]. 
 
-	performForExpiredCart value: [ :cartId |
-		self should: [ restInterface checkoutCart: cartId andCreditCardNumber: notExpiredCreditCard number andExpirationDate: notExpiredCreditCard expirationDate andOwner: notExpiredCreditCard owner]
-			  raise:  Error - MessageNotUnderstood
-			  withExceptionDo: [ :anError |
-				self assert: anError messageText equals: RestInterface invalidCartIdErrorDescription.
-		].
-	].
-
-
-	performForExpiredCart value: [ :cartId |
-		self should: [ restInterface listCart: cartId ]
-			  raise:  Error - MessageNotUnderstood
-			  withExceptionDo: [ :anError |
-				self assert: anError messageText equals: RestInterface invalidCartIdErrorDescription.
-		].	
-	].
+	assertForExpiredCart value: [ :cartId | restInterface listCart: cartId ].
 
 ! !
 
@@ -751,7 +712,7 @@ with: aNumber andPurchases: aCollectionOfPurchases
 
 !classDefinition: #RestInterface category: #TusLibros!
 Object subclass: #RestInterface
-	instanceVariableNames: 'clientIdsAndPasswords carts catalog nextCartId salesBook merchantProcessor purchasesByUser userByCart clock cartsExpiration'
+	instanceVariableNames: 'clientIdsAndPasswords carts catalog nextCartId salesBook merchantProcessor purchasesByUser clock cartsExpiration userByCartId'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'TusLibros'!
@@ -779,7 +740,7 @@ addTo: cartId quantity: aQuantity of: anItem
 	
 ! !
 
-!RestInterface methodsFor: 'interface' stamp: 'F C 11/6/2017 00:56:34'!
+!RestInterface methodsFor: 'interface' stamp: 'F C 11/6/2017 01:28:53'!
 checkoutCart: aCartId andCreditCardNumber: aCreditCardNumber andExpirationDate: anExpirationDate andOwner: anOwner
 
 	| receipt clientId purchases |
@@ -793,26 +754,24 @@ checkoutCart: aCartId andCreditCardNumber: aCreditCardNumber andExpirationDate: 
 		andMerchantProcessor: merchantProcessor 
 		on: FixedGregorianDate today) checkout.
 	
-	clientId _ userByCart at: aCartId.
+	clientId _ userByCartId at: aCartId.
 	purchases _ purchasesByUser at: clientId ifAbsent: [ purchasesByUser at: clientId put: (OrderedCollection new).].
 	purchases add: receipt.
-
-	carts removeKey: aCartId.
-	cartsExpiration removeKey: aCartId.
-	userByCart removeKey: aCartId.
+	
+	self removeCart: aCartId.
 	
 	^receipt.! !
 
-!RestInterface methodsFor: 'interface' stamp: 'F C 11/6/2017 00:48:58'!
+!RestInterface methodsFor: 'interface' stamp: 'F C 11/6/2017 01:30:49'!
 createCartWithClientId: aClientId andPassword: aPassword 
 
 	|cartId |
 	
 	^self do: [
 		cartId _ self generateCartId.
+
 		carts at: cartId put:(Cart with: catalog).
-	
-		userByCart at: cartId put: aClientId.
+		userByCartId at: cartId put: aClientId.
 		cartsExpiration at: cartId put: clock now.
 	
 		cartId.		
@@ -835,7 +794,7 @@ listPurchases: aClientId withPassword: aPassword
  		 and: aPassword. ! !
 
 
-!RestInterface methodsFor: 'asserts' stamp: 'F C 11/6/2017 01:08:25'!
+!RestInterface methodsFor: 'asserts' stamp: 'F C 11/6/2017 01:29:18'!
 assertValidCart: cartId
 
 	| creationDate |
@@ -845,9 +804,7 @@ assertValidCart: cartId
 	creationDate _ cartsExpiration at: cartId.
 
 	(clock now unixTimeSeconds - creationDate unixTimeSeconds) >= ((Duration minutes: 30) totalSeconds) ifTrue: [ 
-		carts removeKey: cartId.
-		userByCart removeKey: cartId.
-		cartsExpiration removeKey: cartId.
+		self removeCart: cartId.
 		self error: RestInterface invalidCartIdErrorDescription.
 	]. 
 ! !
@@ -876,18 +833,18 @@ perform: aBlockClosure andRefreshTtlOnNotExpired: cartId
 	^result.! !
 
 
-!RestInterface methodsFor: 'initialization' stamp: 'F C 11/6/2017 00:53:01'!
+!RestInterface methodsFor: 'initialization' stamp: 'F C 11/6/2017 01:24:35'!
 initilizeWithClientIds: clientInfo andCatalog: aCatalog andMerchantProcessor: aMerchantProcessor andClock: aClock
 	
 	clientIdsAndPasswords _ clientInfo.
-	carts _ Dictionary new.
 	nextCartId _ 0.
 	catalog _ aCatalog.
-	salesBook _ OrderedCollection new.
 	merchantProcessor _ aMerchantProcessor.
-	userByCart _ Dictionary new.
-	purchasesByUser _ Dictionary new.
 	clock _ aClock.
+	salesBook _ OrderedCollection new.
+	carts _ Dictionary new.
+	userByCartId _ Dictionary new.
+	purchasesByUser _ Dictionary new.
 	cartsExpiration _ Dictionary new.
 	! !
 
@@ -901,6 +858,14 @@ generateCartId
 	nextCartId _ nextCartId + 1.
 	
 	^ cartId.! !
+
+
+!RestInterface methodsFor: 'cleanup --private' stamp: 'F C 11/6/2017 01:28:38'!
+removeCart: aCartId
+
+	carts removeKey: aCartId.
+	cartsExpiration removeKey: aCartId.
+	userByCartId removeKey: aCartId.! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
