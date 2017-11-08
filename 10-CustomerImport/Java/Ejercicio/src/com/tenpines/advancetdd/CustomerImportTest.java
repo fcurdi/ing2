@@ -11,12 +11,22 @@ import org.junit.Test;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CustomerImportTest extends TestCase {
 
     private Session session;
 
     public void importCustomers() throws IOException {
+
+        Configuration configuration = new Configuration();
+        configuration.configure();
+
+        ServiceRegistry serviceRegistry = new ServiceRegistryBuilder().applySettings(configuration.getProperties()).buildServiceRegistry();
+        SessionFactory sessionFactory = configuration.buildSessionFactory(serviceRegistry);
+        session = sessionFactory.openSession();
+        session.beginTransaction();
 
         FileReader reader = new FileReader("resources/input.txt");
         LineNumberReader lineReader = new LineNumberReader(reader);
@@ -30,7 +40,7 @@ public class CustomerImportTest extends TestCase {
                 newCustomer.setFirstName(customerData[1]);
                 newCustomer.setLastName(customerData[2]);
                 newCustomer.setIdentificationType(customerData[3]);
-                newCustomer.setIdentificationNumber(customerData[3]);
+                newCustomer.setIdentificationNumber(customerData[4]);
                 session.persist(newCustomer);
             } else if (line.startsWith("A")) {
                 String[] addressData = line.split(",");
@@ -46,21 +56,10 @@ public class CustomerImportTest extends TestCase {
 
             line = lineReader.readLine();
         }
+
         reader.close();
     }
 
-    @Override
-    public void setUp() {
-        Configuration configuration = new Configuration();
-        configuration.configure();
-
-        ServiceRegistry serviceRegistry = new ServiceRegistryBuilder().applySettings(configuration.getProperties()).buildServiceRegistry();
-        SessionFactory sessionFactory = configuration.buildSessionFactory(serviceRegistry);
-        session = sessionFactory.openSession();
-        session.beginTransaction();
-    }
-
-    @Override
     public void tearDown() {
         session.getTransaction().commit();
         session.close();
@@ -68,7 +67,7 @@ public class CustomerImportTest extends TestCase {
 
     //TODO: usando refactors automaticos:
 
-    // assert de que si a la session le pido todos los cutomers -> = 2.
+    // assert de que si a la session le pido todos los cutomers -> = 2. ---> DONE
 
     //busco en los customers de la session el primero que aparece en el input.txt (osea por igualdad de los
     //atributos) y asserto que me encuentra uno solo. Este va a fallar porque hay un error en el customerImport(arreglarlo).
@@ -97,12 +96,38 @@ public class CustomerImportTest extends TestCase {
     //va a quedar que el test sabe buscar los customers en la base de datos... esto no esta bien (pero no hay que cambiarlo por ahora)
     //Ademas el test todavia sabe como es el mapeo de la base de datos... (tmp hay que cambiarlo por ahora)
 
+
+
     @Test
-    public void test01() {
+    public void test01(){
         try {
             importCustomers();
+
+            List<Customer> customers = session.createCriteria(Customer.class).list();
+
+            assertEquals(2, customers.size());
+
+            List<Customer> customersMatched = customers.stream().filter(customer -> customer.getIdentificationNumber().equals("22333444")).collect(Collectors.toList());
+
+            assertEquals(1, customersMatched.size());
+            Customer pepeSanchez = customersMatched.stream().findAny().get();
+
+            assertEquals("Pepe", pepeSanchez.getFirstName());
+            assertEquals("Sanchez", pepeSanchez.getLastName());
+            assertEquals("D", pepeSanchez.getIdentificationType());
+            assertEquals("22333444", pepeSanchez.getIdentificationNumber());
+
+            List<Address> addresses = session.createCriteria(Address.class).list();
+
+            assertEquals(3, addresses.size());
+
+            List<Address> addressesMatched = addresses.stream().filter(address -> address.getStreetName().equals("San Martin") || address.getStreetName().equals("Maipu")).collect(Collectors.toList());
+
+            assertEquals(2, addressesMatched.size());
+
         } catch (Exception e) {
             fail(e.getMessage());
         }
     }
+
 }
