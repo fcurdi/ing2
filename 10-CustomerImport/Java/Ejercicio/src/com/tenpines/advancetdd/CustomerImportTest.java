@@ -51,7 +51,7 @@ public class CustomerImportTest extends TestCase {
                 newAddress.setStreetNumber(Integer.parseInt(addressData[2]));
                 newAddress.setTown(addressData[3]);
                 newAddress.setZipCode(Integer.parseInt(addressData[4]));
-                newAddress.setProvince(addressData[3]);
+                newAddress.setProvince(addressData[5]);
             }
 
             line = lineReader.readLine();
@@ -121,9 +121,51 @@ public class CustomerImportTest extends TestCase {
 
             assertEquals(3, addresses.size());
 
-            List<Address> addressesMatched = addresses.stream().filter(address -> address.getStreetName().equals("San Martin") || address.getStreetName().equals("Maipu")).collect(Collectors.toList());
+            List<Address> addressesMatchedWithStreetSanMartin = addresses.stream().filter(address -> address.getStreetName().equals("San Martin")).collect(Collectors.toList());
+            List<Address> addressesMatchedWithStreetMaipu = addresses.stream().filter(address -> address.getStreetName().equals("Maipu")).collect(Collectors.toList());
 
-            assertEquals(2, addressesMatched.size());
+            assertEquals(1, addressesMatchedWithStreetSanMartin.size());
+            assertEquals(1, addressesMatchedWithStreetMaipu.size());
+
+            Address sanMartin = addressesMatchedWithStreetSanMartin.stream().findAny().get();
+
+            assertEquals("San Martin", sanMartin.getStreetName());
+            assertEquals(3322, sanMartin.getStreetNumber());
+            assertEquals("Olivos", sanMartin.getTown());
+            assertEquals(1636, sanMartin.getZipCode());
+            assertEquals("BsAs", sanMartin.getProvince());
+
+            Address maipu = addressesMatchedWithStreetMaipu.stream().findAny().get();
+
+            assertEquals("Maipu", maipu.getStreetName());
+            assertEquals(888, maipu.getStreetNumber());
+            assertEquals("Florida", maipu.getTown());
+            assertEquals(1122, maipu.getZipCode());
+            assertEquals("Buenos Aires", maipu.getProvince());
+
+            // customer 2
+
+            customersMatched = customers.stream().filter(customer -> customer.getIdentificationNumber().equals("23-25666777-9")).collect(Collectors.toList());
+
+            assertEquals(1, customersMatched.size());
+            Customer juanPerez = customersMatched.stream().findAny().get();
+
+            assertEquals("Juan", juanPerez.getFirstName());
+            assertEquals("Perez", juanPerez.getLastName());
+            assertEquals("C", juanPerez.getIdentificationType());
+            assertEquals("23-25666777-9", juanPerez.getIdentificationNumber());
+
+            List<Address> addressesMatchedWithStreetAlem = addresses.stream().filter(address -> address.getStreetName().equals("Alem")).collect(Collectors.toList());
+
+            assertEquals(1, addressesMatchedWithStreetAlem.size());
+
+            Address alem = addressesMatchedWithStreetAlem.stream().findAny().get();
+
+            assertEquals("Alem", alem.getStreetName());
+            assertEquals(1122, alem.getStreetNumber());
+            assertEquals("CABA", alem.getTown());
+            assertEquals(1001, alem.getZipCode());
+            assertEquals("CABA", alem.getProvince());
 
         } catch (Exception e) {
             fail(e.getMessage());
