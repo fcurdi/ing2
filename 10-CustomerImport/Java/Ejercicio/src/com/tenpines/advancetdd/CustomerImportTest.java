@@ -10,20 +10,12 @@ import org.junit.Test;
 
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.Arrays;
 import java.util.List;
 
 public class CustomerImportTest extends TestCase {
 
     private Session session;
     private Reader reader;
-
-    private Customer pepeSanchez;
-    private Customer juanPerez;
-
-    private Address sanMartinAddress;
-    private Address maipuAddress;
-    private Address alemAddress;
 
     @Override
     public void setUp() throws Exception {
@@ -43,38 +35,8 @@ public class CustomerImportTest extends TestCase {
                         "C,Juan,Perez,C,23-25666777-9\n" +
                         "A,Alem,1122,CABA,1001,CABA"
         );
-        sanMartinAddress = new Address();
-        sanMartinAddress.setStreetName("San Martin");
-        sanMartinAddress.setStreetNumber(3322);
-        sanMartinAddress.setTown("Olivos");
-        sanMartinAddress.setZipCode(1636);
-        sanMartinAddress.setProvince("BsAs");
 
-        maipuAddress = new Address();
-        maipuAddress.setStreetName("Maipu");
-        maipuAddress.setStreetNumber(888);
-        maipuAddress.setTown("Florida");
-        maipuAddress.setZipCode(1122);
-        maipuAddress.setProvince("Buenos Aires");
 
-        alemAddress = new Address();
-        alemAddress.setStreetName("Alem");
-        alemAddress.setStreetNumber(1122);
-        alemAddress.setTown("CABA");
-        alemAddress.setZipCode(1001);
-        alemAddress.setProvince("CABA");
-
-        pepeSanchez = new Customer();
-        pepeSanchez.setIdentificationType("D");
-        pepeSanchez.setIdentificationNumber("22333444");
-        pepeSanchez.setFirstName("Pepe");
-        pepeSanchez.setLastName("Sanchez");
-
-        juanPerez = new Customer();
-        juanPerez.setIdentificationType("C");
-        juanPerez.setIdentificationNumber("23-25666777-9");
-        juanPerez.setFirstName("Juan");
-        juanPerez.setLastName("Perez");
     }
 
     @Override
@@ -86,26 +48,43 @@ public class CustomerImportTest extends TestCase {
         reader.close();
     }
 
-    private void assertCustomerWasLoadedCorrectly(Customer customer, Customer expectedCustomer, Address... expectedAddresses) {
-        assertEquals(expectedCustomer.getFirstName(), customer.getFirstName());
-        assertEquals(expectedCustomer.getLastName(), customer.getLastName());
-        assertEquals(expectedCustomer.getIdentificationType(), customer.getIdentificationType());
-        assertEquals(expectedCustomer.getIdentificationNumber(), customer.getIdentificationNumber());
+    private void assertCustomerPepeSanchezWasLoadedCorrectly(List<Customer> customers) {
+        Customer pepeSanchez = findCustomerWithIdentificationNumber(customers, "22333444");
 
-        assertAddressesLoadedCorrectlyForCustomer(customer, expectedAddresses);
+        assertEquals("Pepe", pepeSanchez.getFirstName());
+        assertEquals("Sanchez", pepeSanchez.getLastName());
+        assertEquals("D", pepeSanchez.getIdentificationType());
+        assertEquals("22333444", pepeSanchez.getIdentificationNumber());
+
+        Address address = pepeSanchez.addressAt("San Martin");
+        assertEquals("San Martin", address.getStreetName());
+        assertEquals(3322, address.getStreetNumber());
+        assertEquals("Olivos", address.getTown());
+        assertEquals(1636, address.getZipCode());
+        assertEquals("BsAs", address.getProvince());
+
+        address = pepeSanchez.addressAt("Maipu");
+        assertEquals("Maipu", address.getStreetName());
+        assertEquals(888, address.getStreetNumber());
+        assertEquals("Florida", address.getTown());
+        assertEquals(1122, address.getZipCode());
+        assertEquals("Buenos Aires", address.getProvince());
     }
 
-    private void assertAddressesLoadedCorrectlyForCustomer(Customer customer, Address... expectedAddresses) {
-        Arrays.stream(expectedAddresses).forEach(expectedAddress -> {
-            Address address = customer.addressAt(expectedAddress.getStreetName());
+    private void assertCustomerJuanPerezWasLoadedCorrectly(List<Customer> customers) {
+        Customer juanPerez = findCustomerWithIdentificationNumber(customers, "23-25666777-9");
 
-            assertEquals(expectedAddress.getStreetName(), address.getStreetName());
-            assertEquals(expectedAddress.getStreetNumber(), address.getStreetNumber());
-            assertEquals(expectedAddress.getTown(), address.getTown());
-            assertEquals(expectedAddress.getZipCode(), address.getZipCode());
-            assertEquals(expectedAddress.getProvince(), address.getProvince());
-        });
+        assertEquals("Juan", juanPerez.getFirstName());
+        assertEquals("Perez", juanPerez.getLastName());
+        assertEquals("C", juanPerez.getIdentificationType());
+        assertEquals("23-25666777-9", juanPerez.getIdentificationNumber());
 
+        Address address = juanPerez.addressAt("Alem");
+        assertEquals("Alem", address.getStreetName());
+        assertEquals(1122, address.getStreetNumber());
+        assertEquals("CABA", address.getTown());
+        assertEquals(1001, address.getZipCode());
+        assertEquals("CABA", address.getProvince());
     }
 
     private Customer findCustomerWithIdentificationNumber(List<Customer> customers, String identificationNumber) {
@@ -115,19 +94,17 @@ public class CustomerImportTest extends TestCase {
                 .findAny().get();
     }
 
+
     @Test
     public void test01() {
         try {
-
-            //TODO: Esto deberia estar dentro del findCustomer?
-            CustomerImporter.importCustomers(session, reader);
+            //TODO: deberia estar dentro del findCustomers
+            (new CustomerImporter(session)).from(reader);
             List<Customer> customers = session.createCriteria(Customer.class).list();
             assertEquals(2, customers.size());
 
-            Customer pepe = findCustomerWithIdentificationNumber(customers, "22333444");
-            Customer juan = findCustomerWithIdentificationNumber(customers, "23-25666777-9");
-            assertCustomerWasLoadedCorrectly(pepe, pepeSanchez, sanMartinAddress, maipuAddress);
-            assertCustomerWasLoadedCorrectly(juan, juanPerez, alemAddress);
+            assertCustomerPepeSanchezWasLoadedCorrectly(customers);
+            assertCustomerJuanPerezWasLoadedCorrectly(customers);
         } catch (Exception e) {
             fail(e.getMessage());
         }

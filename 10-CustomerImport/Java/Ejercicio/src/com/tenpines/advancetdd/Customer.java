@@ -26,7 +26,7 @@ public class Customer {
     private Set<Address> addresses;
 
     public Customer() {
-        addresses = new HashSet<Address>();
+        addresses = new HashSet<>();
     }
 
     public long getId() {
@@ -78,7 +78,7 @@ public class Customer {
     }
 
     public Address addressAt(String streetName) {
-        return addresses.stream().filter(address -> address.getStreetName().equals(streetName)).findAny().get(); //TODO: que pasa si no la encuentra??
+        return addresses.stream().filter(address -> address.getStreetName().equals(streetName)).findAny().get();
     }
 
 }

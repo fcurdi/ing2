@@ -8,34 +8,66 @@ import java.io.Reader;
 
 public class CustomerImporter {
 
-    //TODO: deberia seguir siendo static?
-    public static void importCustomers(Session session, Reader reader) throws IOException {
-        Customer newCustomer = null;
-        LineNumberReader lineReader = new LineNumberReader(reader);
-        String line = lineReader.readLine();
-        while (line != null) {
-            if (line.startsWith("C")) {
-                String[] customerData = line.split(",");
-                newCustomer = new Customer();
-                newCustomer.setFirstName(customerData[1]);
-                newCustomer.setLastName(customerData[2]);
-                newCustomer.setIdentificationType(customerData[3]);
-                newCustomer.setIdentificationNumber(customerData[4]);
-                session.persist(newCustomer);
-            } else if (line.startsWith("A")) {
-                String[] addressData = line.split(",");
-                Address newAddress = new Address();
+    private static String line;
+    private static LineNumberReader lineReader;
+    private Customer customer;
+    private String[] record;
+    private Session session;
 
-                newCustomer.addAddress(newAddress);
-                newAddress.setStreetName(addressData[1]);
-                newAddress.setStreetNumber(Integer.parseInt(addressData[2]));
-                newAddress.setTown(addressData[3]);
-                newAddress.setZipCode(Integer.parseInt(addressData[4]));
-                newAddress.setProvince(addressData[5]);
-            }
+    public CustomerImporter(Session session) {
+        this.session = session;
+    }
 
-            line = lineReader.readLine();
+    public void from(Reader reader) throws IOException {
+        lineReader = new LineNumberReader(reader);
+        while (hasLinesToProcess()) {
+            recordFromLine();
+            parseRecord();
         }
+    }
+
+    private void recordFromLine() {
+        record = line.split(",");
+    }
+
+    private void parseRecord() {
+        if (isCustomerRecord()) {
+            loadCustomerFromRecord();
+        } else if (isAddressRecord()) {
+            loadAddressInCustomerFromRecord();
+        }
+    }
+
+    private void loadCustomerFromRecord() {
+        customer = new Customer();
+        customer.setFirstName(record[1]);
+        customer.setLastName(record[2]);
+        customer.setIdentificationType(record[3]);
+        customer.setIdentificationNumber(record[4]);
+        session.persist(customer);
+    }
+
+    private void loadAddressInCustomerFromRecord() {
+        Address newAddress = new Address();
+        newAddress.setStreetName(record[1]);
+        newAddress.setStreetNumber(Integer.parseInt(record[2]));
+        newAddress.setTown(record[3]);
+        newAddress.setZipCode(Integer.parseInt(record[4]));
+        newAddress.setProvince(record[5]);
+        customer.addAddress(newAddress);
+    }
+
+    private boolean isAddressRecord() {
+        return line.startsWith("A");
+    }
+
+    private boolean isCustomerRecord() {
+        return line.startsWith("C");
+    }
+
+    private Boolean hasLinesToProcess() throws IOException {
+        line = lineReader.readLine();
+        return line != null;
     }
 
 }
