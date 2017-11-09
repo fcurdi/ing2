@@ -1,92 +1,84 @@
 package com.tenpines.advancetdd;
 
-import java.io.IOException;
+import org.hibernate.validator.constraints.NotEmpty;
+
+import javax.persistence.*;
+import javax.validation.constraints.Pattern;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.validation.constraints.Pattern;
-
-import org.hibernate.validator.constraints.NotEmpty;
-
 @Entity
-@Table( name = "CUSTOMERS" )
+@Table(name = "CUSTOMERS")
 public class Customer {
 
-	@Id
-	@GeneratedValue
-	private long id;
-	@NotEmpty
-	private String firstName;
-	@NotEmpty
-	private String lastName;
-	@Pattern(regexp="D|C")
-	private String identificationType;
-	@NotEmpty
-	private String identificationNumber;
-	@OneToMany(cascade = CascadeType.ALL)
-	private Set<Address> addresses;
-	
-	public Customer()
-	{
-		addresses = new HashSet<Address>();
-	}
+    @Id
+    @GeneratedValue
+    private long id;
+    @NotEmpty
+    private String firstName;
+    @NotEmpty
+    private String lastName;
+    @Pattern(regexp = "D|C")
+    private String identificationType;
+    @NotEmpty
+    private String identificationNumber;
+    @OneToMany(cascade = CascadeType.ALL)
+    private Set<Address> addresses;
 
-	public long getId() {
-		return id;
-	}
+    public Customer() {
+        addresses = new HashSet<Address>();
+    }
 
-	public void setId(long id) {
-		this.id = id;
-	}
+    public long getId() {
+        return id;
+    }
 
-	public String getFirstName() {
-		return firstName;
-	}
+    public void setId(long id) {
+        this.id = id;
+    }
 
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
+    public String getFirstName() {
+        return firstName;
+    }
 
-	public String getLastName() {
-		return lastName;
-	}
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
 
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
+    public String getLastName() {
+        return lastName;
+    }
 
-	public String getIdentificationType() {
-		return identificationType;
-	}
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
 
-	public void setIdentificationType(String identificationType) {
-		this.identificationType = identificationType;
-	}
+    public String getIdentificationType() {
+        return identificationType;
+    }
 
-	public String getIdentificationNumber() {
-		return identificationNumber;
-	}
+    public void setIdentificationType(String identificationType) {
+        this.identificationType = identificationType;
+    }
 
-	public void setIdentificationNumber(String identificationNumber) {
-		this.identificationNumber = identificationNumber;
-	}
+    public String getIdentificationNumber() {
+        return identificationNumber;
+    }
 
-	public void addAddress(Address anAddress){
-		addresses.add(anAddress);
-	}
+    public void setIdentificationNumber(String identificationNumber) {
+        this.identificationNumber = identificationNumber;
+    }
 
-	public static void main(String[] args){
-		try {
-			(new CustomerImportTest()).importCustomers();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+    public void addAddress(Address anAddress) {
+        addresses.add(anAddress);
+    }
+
+    public Set<Address> getAddresses() {
+        return addresses;
+    }
+
+    public Address addressAt(String streetName) {
+        return addresses.stream().filter(address -> address.getStreetName().equals(streetName)).findAny().get(); //TODO: que pasa si no la encuentra??
+    }
+
 }

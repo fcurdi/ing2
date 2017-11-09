@@ -26,8 +26,7 @@ public class Address {
 	@NotEmpty
 	private String province;
 	
-	public Address()
-	{}
+	public Address() {}
 	
 	public Address(String streetName) {
 		this.streetName = streetName;
