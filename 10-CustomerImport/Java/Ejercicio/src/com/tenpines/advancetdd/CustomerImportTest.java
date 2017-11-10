@@ -12,6 +12,9 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.List;
 
+import static com.tenpines.advancetdd.CustomerImporter.*;
+
+// TODO: renombrar tests
 public class CustomerImportTest extends TestCase {
 
     private Session session;
@@ -27,16 +30,6 @@ public class CustomerImportTest extends TestCase {
         SessionFactory sessionFactory = configuration.buildSessionFactory(serviceRegistry);
         session = sessionFactory.openSession();
         session.beginTransaction();
-
-        reader = new StringReader(
-                "C,Pepe,Sanchez,D,22333444\n" +
-                        "A,San Martin,3322,Olivos,1636,BsAs\n" +
-                        "A,Maipu,888,Florida,1122,Buenos Aires\n" +
-                        "C,Juan,Perez,C,23-25666777-9\n" +
-                        "A,Alem,1122,CABA,1001,CABA"
-        );
-
-
     }
 
     @Override
@@ -44,7 +37,6 @@ public class CustomerImportTest extends TestCase {
         super.tearDown();
         session.getTransaction().commit();
         session.close();
-
         reader.close();
     }
 
@@ -94,21 +86,86 @@ public class CustomerImportTest extends TestCase {
                 .findAny().get();
     }
 
+    @Test
+    public void test01() throws Exception {
+        //TODO: deberia estar dentro del findCustomers
+        reader = getValidData();
+        (new CustomerImporter(session)).from(reader);
+        List<Customer> customers = session.createCriteria(Customer.class).list();
+        assertEquals(2, customers.size());
+
+        assertCustomerPepeSanchezWasLoadedCorrectly(customers);
+        assertCustomerJuanPerezWasLoadedCorrectly(customers);
+    }
 
     @Test
-    public void test01() {
-        try {
-            //TODO: deberia estar dentro del findCustomers
-            (new CustomerImporter(session)).from(reader);
-            List<Customer> customers = session.createCriteria(Customer.class).list();
-            assertEquals(2, customers.size());
+    public void test02() throws Exception {
+        reader = new StringReader("");
+        (new CustomerImporter(session)).from(reader);
+        assertSessionWithoutCustomersAndAddresses();
+    }
 
-            assertCustomerPepeSanchezWasLoadedCorrectly(customers);
-            assertCustomerJuanPerezWasLoadedCorrectly(customers);
+    @Test
+    public void test03() {
+        reader = new StringReader("A,San Martin,3322,Olivos,1636,BsAs\n");
+        assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(NO_CUSTOMER_FOR_ADDRESS);
+    }
+
+    @Test
+    public void test04() {
+        reader = new StringReader("AX,Pepe,Sanchez,D,22333444\n");
+        assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_RECORD_TYPE);
+    }
+
+    @Test
+    public void test05() {
+        reader = new StringReader("C,Pepe,D,22333444\n");
+        assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_CUSTOMER_RECORD);
+    }
+
+    @Test
+    public void test06() {
+        reader = new StringReader("A\n");
+        assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_ADDRESS_RECORD);
+    }
+
+    @Test
+    public void test07() {
+        reader = new StringReader("C,Pepe,D,22333444,1,1");
+        assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_CUSTOMER_RECORD);
+    }
+
+    @Test
+    public void test08() {
+        reader = new StringReader("A,San Martin,3322,Olivos,1636,BsAs,BA");
+        assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_ADDRESS_RECORD);
+    }
+
+    private void assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(String exceptionMessage) {
+        try {
+            (new CustomerImporter(session)).from(reader);
+            fail();
         } catch (Exception e) {
-            fail(e.getMessage());
+            assertEquals(exceptionMessage, e.getMessage());
+            assertSessionWithoutCustomersAndAddresses();
         }
     }
 
+    private StringReader getValidData() {
+        return new StringReader(
+                "C,Pepe,Sanchez,D,22333444\n" +
+                        "A,San Martin,3322,Olivos,1636,BsAs\n" +
+                        "A,Maipu,888,Florida,1122,Buenos Aires\n" +
+                        "C,Juan,Perez,C,23-25666777-9\n" +
+                        "A,Alem,1122,CABA,1001,CABA"
+        );
+    }
+
+    private void assertSessionWithoutCustomersAndAddresses() {
+        List<Customer> customers = session.createCriteria(Customer.class).list();
+        assertEquals(0, customers.size());
+        List<Customer> addresses = session.createCriteria(Address.class).list();
+        assertEquals(0, addresses.size());
+    }
 
 }
