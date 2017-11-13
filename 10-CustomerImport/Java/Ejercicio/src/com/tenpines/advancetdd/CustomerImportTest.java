@@ -14,7 +14,32 @@ import java.util.List;
 
 import static com.tenpines.advancetdd.CustomerImporter.*;
 
-// TODO: renombrar tests
+/**
+ *
+ * TODO: renombrar tests
+ *
+ * TODO: En el test seguimos usando una base relacional (en este caso el session de hibernate). Esto lo hace lento.
+    la idea seria simularlo. Para esto habria que tener una jerarquia que sepa responder los mensajes que necesitamos.
+    Por ejemplo: Clase Abstracta CustomerSystem y la subclasifican PersistentCustomerSystem(el real) y TransientCustomerSystem(el simulador. Que basta
+    con que tenga una coleccion de los objetos y que los guarde y los busque ahi)
+    Estas clases tienen que saber responder (close, commit, begin, y todos los demas que usamos ahora en los tests). Que tienen un
+    colaborador interno system que es la base de datos en cuestion.
+    El CustomerImporterTest entonces pasa a tener un CustomerSystem en vez de un Session
+
+    Lo que esta ahora en el setup de test que tiene que ver con la construccion de la session se tiene que ir al initialize del persistent customer system
+    y como ahora tengo un customer system, le defino los mensajes para que arranque, haga close, begin etc pero sin hablar de session (todos mensajes
+    del customer system) . Lo mismo el tear down
+
+    Hay que hacer que los tests puedan correr o con el real o con el simulador dependiendo del ambiente. Hay que modelar el ambiente
+    y que segun esto se pueda correr una o la otra (por ejemplo si es DEV usar el simulador, si es INTEGRATION usar el posta).
+    Queda una jerarquia entonces de Enviorment que subclasifican DevelopmentEnviroment y IntegrationEnviorment. Que responden
+    el createCustomerSystem ( y dan uno o el otro). Ademas saben responder isCurrent que indica si es o no el actual
+    En el setup entonces inicializo el CustomerSystem segun el enviroment
+
+    En el caso de smalltalk determinar el current es un detect de current de las subclasses. Aca en Java hay que mantener una lista de las subclases
+    para poder hacer el detect.
+*/
+
 public class CustomerImportTest extends TestCase {
 
     private Session session;
@@ -25,7 +50,6 @@ public class CustomerImportTest extends TestCase {
         super.setUp();
         Configuration configuration = new Configuration();
         configuration.configure();
-
         ServiceRegistry serviceRegistry = new ServiceRegistryBuilder().applySettings(configuration.getProperties()).buildServiceRegistry();
         SessionFactory sessionFactory = configuration.buildSessionFactory(serviceRegistry);
         session = sessionFactory.openSession();
