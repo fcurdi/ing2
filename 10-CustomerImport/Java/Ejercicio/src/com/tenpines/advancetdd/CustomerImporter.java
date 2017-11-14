@@ -1,7 +1,5 @@
 package com.tenpines.advancetdd;
 
-import org.hibernate.Session;
-
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.Reader;
@@ -16,10 +14,10 @@ public class CustomerImporter {
     private static LineNumberReader lineReader;
     private Customer customer;
     private String[] record;
-    private Session session;
+    private CustomerSystem system;
 
-    public CustomerImporter(Session session) {
-        this.session = session;
+    public CustomerImporter(CustomerSystem system) {
+        this.system = system;
     }
 
     public void from(Reader reader) throws Exception {
@@ -53,7 +51,7 @@ public class CustomerImporter {
         customer.setLastName(record[2]);
         customer.setIdentificationType(record[3]);
         customer.setIdentificationNumber(record[4]);
-        session.persist(customer);
+        system.add(customer);
     }
 
     private void loadAddressInCustomerFromRecord() throws Exception {
