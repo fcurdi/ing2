@@ -33,7 +33,7 @@ import static com.tenpines.advancetdd.CustomerImporter.*;
  *  Se puede hacer una generalizacion para los dos importadores (SupplierImporter y CustomerImporter)
  */
 
-public class CustomerImportTest extends TestCase {
+public class CustomerImporterTest extends TestCase {
 
     private CustomerSystem system;
     private Reader reader;
@@ -42,7 +42,7 @@ public class CustomerImportTest extends TestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        system = Environment.createSystem();
+        system = Environment.createSystem().getCustomerSystem();
         customerImporter = new CustomerImporter(system);
         system.start();
         system.beginTransaction();

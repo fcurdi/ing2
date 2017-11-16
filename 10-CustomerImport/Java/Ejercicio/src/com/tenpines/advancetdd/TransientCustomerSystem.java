@@ -5,14 +5,12 @@ import java.util.List;
 
 public class TransientCustomerSystem implements CustomerSystem {
 
-    List<Customer> customers;
+    private List<Customer> customers;
 
-    public TransientCustomerSystem() {
-        customers = new ArrayList<>();
-    }
 
     @Override
     public void start() {
+        customers = new ArrayList<>();
     }
 
     @Override

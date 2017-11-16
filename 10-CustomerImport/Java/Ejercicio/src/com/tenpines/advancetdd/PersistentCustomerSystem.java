@@ -11,18 +11,18 @@ import java.util.List;
 public class PersistentCustomerSystem implements CustomerSystem {
 
     private Session session;
+    private final SessionFactory sessionFactory;
 
     public PersistentCustomerSystem() {
         Configuration configuration = new Configuration();
         configuration.configure();
         ServiceRegistry serviceRegistry = new ServiceRegistryBuilder().applySettings(configuration.getProperties()).buildServiceRegistry();
-        SessionFactory sessionFactory = configuration.buildSessionFactory(serviceRegistry);
-        session = sessionFactory.openSession();
+        sessionFactory = configuration.buildSessionFactory(serviceRegistry);
     }
 
-    //TODO: deberia hacer algo.
     @Override
     public void start() {
+        session = sessionFactory.openSession();
     }
 
     @Override

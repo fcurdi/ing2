@@ -10,10 +10,10 @@ public abstract class Environment {
     protected abstract boolean isCurrent();
 
     //TODO: rename
-    protected abstract CustomerSystem system();
+    protected abstract ErpSystem system();
 
     //TODO: rename
-    public static CustomerSystem createSystem() {
+    public static ErpSystem createSystem() {
         Environment current = environments.stream()
                 .filter((Environment::isCurrent))
                 .findFirst()
