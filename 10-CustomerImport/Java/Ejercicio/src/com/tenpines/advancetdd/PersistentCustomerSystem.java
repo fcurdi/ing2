@@ -27,8 +27,12 @@ public class PersistentCustomerSystem implements CustomerSystem {
     }
 
     @Override
-    public void stop() {
+    public void commit() {
         session.getTransaction().commit();
+    }
+
+    @Override
+    public void stop() {
         session.close();
     }
 

@@ -6,6 +6,8 @@ public interface CustomerSystem {
 
     void start();
 
+    void commit();
+
     void stop();
 
     void add(Customer customer);

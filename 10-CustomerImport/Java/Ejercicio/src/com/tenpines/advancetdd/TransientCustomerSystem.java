@@ -16,6 +16,10 @@ public class TransientCustomerSystem implements CustomerSystem {
     }
 
     @Override
+    public void commit() {
+    }
+
+    @Override
     public void stop() {
     }
 

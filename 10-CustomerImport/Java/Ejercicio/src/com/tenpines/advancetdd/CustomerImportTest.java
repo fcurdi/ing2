@@ -29,6 +29,7 @@ public class CustomerImportTest extends TestCase {
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
+        system.commit();
         system.stop();
         reader.close();
     }
