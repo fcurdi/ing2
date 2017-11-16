@@ -20,9 +20,13 @@ public class PersistentCustomerSystem implements CustomerSystem {
         session = sessionFactory.openSession();
     }
 
-
+    //TODO: deberia hacer algo.
     @Override
     public void start() {
+    }
+
+    @Override
+    public void beginTransaction() {
         session.beginTransaction();
     }
 

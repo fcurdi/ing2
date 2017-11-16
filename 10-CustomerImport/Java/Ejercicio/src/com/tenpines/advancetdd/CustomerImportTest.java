@@ -10,6 +10,27 @@ import static com.tenpines.advancetdd.CustomerImporter.*;
 
 /**
  * TODO: renombrar tests
+ *
+ * TODO: el tema del findCustomer y el tema de hacer los asserts de que es igual a otro, parte deberia
+ * ser responsabilidad del customer (ver video?)
+ *
+ *
+ * TODO: Ver mail:
+ *  -poder importar suppliers.
+ *  Formato de registros:
+ *  NC -> new customer, trae todos los datos ya que hay que crear uno nuevo en el sistema
+ *  EC -> existing customer, ya es un que existe.
+ *  (Hay que asociar los customers al supplier)
+ *  A,.... -> Direcciones del supplier
+ *
+ *
+ *  ERP SYSTEM -> composicion (no es un composite) de CutomerSystem y SupplierSystem (cada uno tendra su implementacion de persistent y transient)
+ *
+ *  Tipo y numero de identificacion puede llegar a necesitar una abstraccion (ya que siempre los paso juntos)
+ *
+ *  Party (superclase), Customer (subclase), Supplier (subclase)
+ *
+ *  Se puede hacer una generalizacion para los dos importadores (SupplierImporter y CustomerImporter)
  */
 
 public class CustomerImportTest extends TestCase {
@@ -24,6 +45,7 @@ public class CustomerImportTest extends TestCase {
         system = Environment.createSystem();
         customerImporter = new CustomerImporter(system);
         system.start();
+        system.beginTransaction();
     }
 
     @Override
