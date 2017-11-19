@@ -4,35 +4,21 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.Reader;
 
-public class CustomerImporter {
+public class CustomerImporter extends Importer {
 
     public static final String INVALID_CUSTOMER_RECORD = "Invalid customer record";
     public static final String INVALID_ADDRESS_RECORD = "Invalid address record";
     public static final String INVALID_RECORD_TYPE = "Invalid record type";
     public static final String NO_CUSTOMER_FOR_ADDRESS = "No customer for address";
-    private static String line;
-    private static LineNumberReader lineReader;
     private Customer customer;
-    private String[] record;
     private CustomerSystem system;
 
     public CustomerImporter(CustomerSystem system) {
         this.system = system;
     }
 
-    public void from(Reader reader) throws Exception {
-        lineReader = new LineNumberReader(reader);
-        while (hasLinesToProcess()) {
-            recordFromLine();
-            parseRecord();
-        }
-    }
-
-    private void recordFromLine() {
-        record = line.split(",");
-    }
-
-    private void parseRecord() throws Exception {
+    @Override
+    public void parseRecord() throws Exception {
         if (isCustomerRecord()) {
             loadCustomerFromRecord();
         } else if (isAddressRecord()) {
@@ -46,11 +32,7 @@ public class CustomerImporter {
         if (record.length != 5) {
             throw new Exception(INVALID_CUSTOMER_RECORD);
         }
-        customer = new Customer();
-        customer.setFirstName(record[1]);
-        customer.setLastName(record[2]);
-        customer.setIdentificationType(record[3]);
-        customer.setIdentificationNumber(record[4]);
+        customer = new Customer(record[1], record[2], record[3], record[4]);
         system.add(customer);
     }
 
@@ -58,16 +40,10 @@ public class CustomerImporter {
         if (record.length != 6) {
             throw new Exception(INVALID_ADDRESS_RECORD);
         }
-        Address newAddress = new Address();
-        newAddress.setStreetName(record[1]);
-        newAddress.setStreetNumber(Integer.parseInt(record[2]));
-        newAddress.setTown(record[3]);
-        newAddress.setZipCode(Integer.parseInt(record[4]));
-        newAddress.setProvince(record[5]);
         if (customer == null) {
             throw new Exception(NO_CUSTOMER_FOR_ADDRESS);
         }
-        customer.addAddress(newAddress);
+        customer.addAddress(new Address(record[1], Integer.parseInt(record[2]), record[3], Integer.parseInt(record[4]), record[5]));
     }
 
     private boolean isAddressRecord() {
@@ -77,10 +53,4 @@ public class CustomerImporter {
     private boolean isCustomerRecord() {
         return "C".equals(record[0]);
     }
-
-    private Boolean hasLinesToProcess() throws IOException {
-        line = lineReader.readLine();
-        return line != null;
-    }
-
 }

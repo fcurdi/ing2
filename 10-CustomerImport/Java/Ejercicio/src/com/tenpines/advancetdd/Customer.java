@@ -29,6 +29,14 @@ public class Customer {
         addresses = new HashSet<>();
     }
 
+    public Customer(String firstName, String lastName, String identificationType, String identificationNumber) {
+        this();
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.identificationType = identificationType;
+        this.identificationNumber = identificationNumber;
+    }
+
     public long getId() {
         return id;
     }

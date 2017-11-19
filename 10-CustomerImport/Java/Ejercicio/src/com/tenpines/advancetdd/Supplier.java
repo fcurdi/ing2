@@ -30,6 +30,13 @@ public class Supplier {
     @OneToMany(cascade = CascadeType.ALL)
     private Set<Customer> customers;
 
+    public Supplier(String name, String identificationType, String identificationNumber) {
+        this();
+        this.name = name;
+        this.identificationType = identificationType;
+        this.identificationNumber = identificationNumber;
+    }
+
     public Supplier() {
         addresses = new HashSet<>();
         customers = new HashSet<>();

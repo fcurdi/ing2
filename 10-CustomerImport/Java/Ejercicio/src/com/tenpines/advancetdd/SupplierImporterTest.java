@@ -12,47 +12,38 @@ public class SupplierImporterTest extends TestCase {
 
     //TODO: No volvi a poner los tests que tienen que ver con cargar address y customers porque ya estan cubiertos
     // en el de customerImporter.
-
-    private SupplierSystem supplierSystem;
     private Reader reader;
     private SupplierImporter supplierImporter;
-    private CustomerSystem customerSystem;
+    private ErpSystem erpSystem;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        ErpSystem erpSystem = Environment.createSystem();
-        supplierSystem = erpSystem.getSupplierSystem();
-        customerSystem = erpSystem.getCustomerSystem();
-        supplierImporter = new SupplierImporter(supplierSystem, customerSystem);
-        supplierSystem.start();
-        supplierSystem.beginTransaction();
+        erpSystem = Environment.createSystem();
+        supplierImporter = new SupplierImporter(erpSystem);
+        erpSystem.getSupplierSystem().start();
+        erpSystem.getSupplierSystem().beginTransaction();
     }
 
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
-        supplierSystem.commit();
-        supplierSystem.stop();
+        erpSystem.getSupplierSystem().commit();
+        erpSystem.getSupplierSystem().stop();
         reader.close();
     }
 
     public void test01SuppliersAreImportedCorrectly() throws Exception {
-        customerSystem.start();
-        customerSystem.beginTransaction();
-        Customer customer = new Customer();
-        customer.setFirstName("TestName");
-        customer.setIdentificationNumber("5456774");
-        customer.setIdentificationType("D");
-        customer.setLastName("TestLastName");
-        customerSystem.add(customer);
-        customerSystem.commit();
+        erpSystem.getCustomerSystem().start();
+        erpSystem.getCustomerSystem().beginTransaction();
+        erpSystem.getCustomerSystem().add(new Customer("Juan", "Perez", "D", "5456774"));
+        erpSystem.getCustomerSystem().commit();
 
         reader = getValidData();
         supplierImporter.from(reader);
 
         assertSupplierWasImportedCorrectly();
-        customerSystem.stop();
+        erpSystem.getCustomerSystem().stop();
     }
 
     public void test02CannotImportFromAnEmptySource() throws Exception {
@@ -65,7 +56,6 @@ public class SupplierImporterTest extends TestCase {
         reader = new StringReader("A,San Martin,3322,Olivos,1636,BsAs\n");
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(NO_SUPPLIER_FOR_ADDRESS);
     }
-
 
     public void test04CannotImportNewCustomerWithoutSupplier() {
         reader = new StringReader("NC,Pepe,Sanchez,D,22333444");
@@ -87,7 +77,17 @@ public class SupplierImporterTest extends TestCase {
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_SUPPLIER_RECORD);
     }
 
-    public void test08CannotImportRecordWithInvalidRecordType() {
+    public void test08CannotImportSupplierWithLessInformationThanRequired() {
+        reader = new StringReader("EC,D,5456774,1122");
+        assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_CUSTOMER_RECORD);
+    }
+
+    public void test09CannotImportSupplierWithMoreInformationThanRequired() {
+        reader = new StringReader("EC,D");
+        assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_CUSTOMER_RECORD);
+    }
+
+    public void test10CannotImportRecordWithInvalidRecordType() {
         reader = new StringReader("SS,Supplier1,D,123");
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_RECORD_TYPE);
     }
@@ -113,12 +113,12 @@ public class SupplierImporterTest extends TestCase {
     }
 
     private void assertSystemWithoutSuppliers() {
-        List<Supplier> suppliers = supplierSystem.listSuppliers();
+        List<Supplier> suppliers = erpSystem.getSupplierSystem().listSuppliers();
         assertTrue(suppliers.isEmpty());
     }
 
     private void assertSupplierWasImportedCorrectly() {
-        List<Supplier> suppliers = supplierSystem.listSuppliers();
+        List<Supplier> suppliers = erpSystem.getSupplierSystem().listSuppliers();
         assertEquals(1, suppliers.size());
 
         Supplier supplier = suppliers.stream().findAny().get();
@@ -132,9 +132,11 @@ public class SupplierImporterTest extends TestCase {
         assertEquals("D", pepeSanchez.getIdentificationType());
         assertEquals("22333444", pepeSanchez.getIdentificationNumber());
 
-
-        // TODO: Como asserto el customer que ya existe?
-
+        Customer juanPerez = supplier.customerWith("5456774");
+        assertEquals("Juan", juanPerez.getFirstName());
+        assertEquals("Perez", juanPerez.getLastName());
+        assertEquals("D", juanPerez.getIdentificationType());
+        assertEquals("5456774", juanPerez.getIdentificationNumber());
 
         Address address = supplier.addressAt("San Martin");
         assertEquals("San Martin", address.getStreetName());
