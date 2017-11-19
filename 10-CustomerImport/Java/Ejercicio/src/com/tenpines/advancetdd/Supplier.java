@@ -5,6 +5,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import javax.persistence.*;
 import javax.validation.constraints.Pattern;
 import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "SUPPLIERS")
@@ -24,10 +25,10 @@ public class Supplier {
     private String identificationNumber;
 
     @OneToMany(cascade = CascadeType.ALL)
-    private HashSet<Address> addresses;
+    private Set<Address> addresses;
 
     @OneToMany(cascade = CascadeType.ALL)
-    private HashSet<Customer> customers;
+    private Set<Customer> customers;
 
     public Supplier() {
         addresses = new HashSet<>();
@@ -60,5 +61,17 @@ public class Supplier {
 
     public Customer customerWith(String identificationNumber) {
         return customers.stream().filter(customer -> customer.getIdentificationNumber().equals(identificationNumber)).findAny().get();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getIdentificationType() {
+        return identificationType;
+    }
+
+    public String getIdentificationNumber() {
+        return identificationNumber;
     }
 }

@@ -8,9 +8,10 @@ public class SupplierImporter {
 
     public static final String INVALID_RECORD_TYPE = "Invalid record type";
     public static final String INVALID_ADDRESS_RECORD = "Invalid address record";
-    private static final String NO_SUPPLIER_FOR_ADDRESS = "No supplier for address";
-    private static final String INVALID_SUPPLIER_RECORD = "Invalid supplier record";
-    private static final String INVALID_CUSTOMER_RECORD = "Invalid customer record";
+    public static final String NO_SUPPLIER_FOR_ADDRESS = "No supplier for address";
+    public static final String INVALID_SUPPLIER_RECORD = "Invalid supplier record";
+    public static final String INVALID_CUSTOMER_RECORD = "Invalid customer record";
+    public static final String NO_SUPPLIER_FOR_CUSTOMER = "No supplier for customer";
     private final SupplierSystem system;
     private LineNumberReader lineReader;
     private String line;
@@ -44,13 +45,13 @@ public class SupplierImporter {
         } else if (isCustomerRecord()) {
             loadCustomerFromRecord();
         } else if (isAddressRecord()) {
-            loadAddressInCustomerFromRecord();
+            loadAddressInSupplierFromRecord();
         } else {
             throw new Exception(INVALID_RECORD_TYPE);
         }
     }
 
-    private void loadAddressInCustomerFromRecord() throws Exception {
+    private void loadAddressInSupplierFromRecord() throws Exception {
         if (record.length != 6) {
             throw new Exception(INVALID_ADDRESS_RECORD);
         }
@@ -80,7 +81,12 @@ public class SupplierImporter {
         if (record.length != 3) {
             throw new Exception(INVALID_CUSTOMER_RECORD);
         }
-        Customer existingCustomer = supplier.customerWith(record[1]); //TODO: deberiamos ver si existe o no el customer?
+
+        if (supplier == null) {
+            throw new Exception(NO_SUPPLIER_FOR_CUSTOMER);
+        }
+
+        Customer existingCustomer = supplier.customerWith(record[3]); //TODO: deberiamos ver si existe o no el customer?
 
         supplier.addCustomer(existingCustomer);
     }
@@ -89,6 +95,11 @@ public class SupplierImporter {
         if (record.length != 5) {
             throw new Exception(INVALID_CUSTOMER_RECORD);
         }
+
+        if (supplier == null) {
+            throw new Exception(NO_SUPPLIER_FOR_CUSTOMER);
+        }
+
         Customer customer = new Customer();
         customer.setFirstName(record[1]);
         customer.setLastName(record[2]);
@@ -108,11 +119,11 @@ public class SupplierImporter {
         system.add(supplier);
     }
 
-    public boolean isSupplierRecord() {
+    private boolean isSupplierRecord() {
         return "S".equals(record[0]);
     }
 
-    public boolean isCustomerRecord() {
+    private boolean isCustomerRecord() {
         return isNewCustomerRecord() || isExistingCustomerRecord();
     }
 
@@ -120,11 +131,11 @@ public class SupplierImporter {
         return "A".equals(record[0]);
     }
 
-    public boolean isNewCustomerRecord() {
+    private boolean isNewCustomerRecord() {
         return "NC".equals(record[0]);
     }
 
-    public boolean isExistingCustomerRecord() {
+    private boolean isExistingCustomerRecord() {
         return "EC".equals(record[0]);
     }
 }

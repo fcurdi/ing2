@@ -54,6 +54,7 @@
         <!-- Names the annotated entity class -->
         <mapping class="com.tenpines.advancetdd.Address"/>
         <mapping class="com.tenpines.advancetdd.Customer"/>
+        <mapping class="com.tenpines.advancetdd.Supplier"/>
 
     </session-factory>
 

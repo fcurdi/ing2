@@ -9,7 +9,7 @@ public class DevelopmentEnvironment extends Environment {
     }
 
     @Override
-    protected CustomerSystem system() {
-        return new TransientCustomerSystem();
+    protected ErpSystem system() {
+        return new ErpSystem(new TransientCustomerSystem(), new TransientSupplierSystem());
     }
 }

@@ -6,6 +6,11 @@ public class ErpSystem {
 
     private CustomerSystem customerSystem;
 
+    public ErpSystem(CustomerSystem customerSystem, SupplierSystem supplierSystem) {
+        this.customerSystem = customerSystem;
+        this.supplierSystem = supplierSystem;
+    }
+
     public SupplierSystem getSupplierSystem() {
         return supplierSystem;
     }

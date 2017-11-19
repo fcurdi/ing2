@@ -1,13 +1,14 @@
 package com.tenpines.advancetdd;
 
 public class IntegrationEnvironment extends Environment {
+
     @Override
     protected boolean isCurrent() {
         return false;
     }
 
     @Override
-    protected CustomerSystem system() {
-        return new PersistentCustomerSystem();
+    protected ErpSystem system() {
+        return new ErpSystem(new PersistentCustomerSystem(), new PersistentSupplierSystem());
     }
 }
