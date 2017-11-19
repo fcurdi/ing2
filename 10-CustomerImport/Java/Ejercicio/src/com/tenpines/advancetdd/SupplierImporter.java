@@ -12,14 +12,16 @@ public class SupplierImporter {
     public static final String INVALID_SUPPLIER_RECORD = "Invalid supplier record";
     public static final String INVALID_CUSTOMER_RECORD = "Invalid customer record";
     public static final String NO_SUPPLIER_FOR_CUSTOMER = "No supplier for customer";
-    private final SupplierSystem system;
+    private final SupplierSystem supplierSystem;
+    private final CustomerSystem customerSystem;
     private LineNumberReader lineReader;
     private String line;
     private String[] record;
     private Supplier supplier;
 
-    public SupplierImporter(SupplierSystem system) {
-        this.system = system;
+    public SupplierImporter(SupplierSystem supplierSystem, CustomerSystem customerSystem) {
+        this.supplierSystem = supplierSystem;
+        this.customerSystem = customerSystem;
     }
 
     public void from(Reader reader) throws Exception {
@@ -86,9 +88,9 @@ public class SupplierImporter {
             throw new Exception(NO_SUPPLIER_FOR_CUSTOMER);
         }
 
-        Customer existingCustomer = supplier.customerWith(record[3]); //TODO: deberiamos ver si existe o no el customer?
+        Customer existingCustomer = customerSystem.listCustomer().stream().filter(customer -> customer.getIdentificationNumber().equals(record[2])).findAny().get();//TODO: deberiamos ver si existe o no el customer?
 
-        supplier.addCustomer(existingCustomer);
+        //supplier.addCustomer(existingCustomer);
     }
 
     private void loadNewCustomerFromRecord() throws Exception {
@@ -116,7 +118,7 @@ public class SupplierImporter {
         supplier.setName(record[1]);
         supplier.setIdentificationType(record[2]);
         supplier.setIdentificationNumber(record[3]);
-        system.add(supplier);
+        supplierSystem.add(supplier);
     }
 
     private boolean isSupplierRecord() {

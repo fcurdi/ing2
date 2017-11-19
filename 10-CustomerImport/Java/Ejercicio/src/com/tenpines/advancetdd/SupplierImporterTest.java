@@ -13,32 +13,46 @@ public class SupplierImporterTest extends TestCase {
     //TODO: No volvi a poner los tests que tienen que ver con cargar address y customers porque ya estan cubiertos
     // en el de customerImporter.
 
-    private SupplierSystem system;
+    private SupplierSystem supplierSystem;
     private Reader reader;
     private SupplierImporter supplierImporter;
+    private CustomerSystem customerSystem;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        system = Environment.createSystem().getSupplierSystem();
-        supplierImporter = new SupplierImporter(system);
-        system.start();
-        system.beginTransaction();
+        ErpSystem erpSystem = Environment.createSystem();
+        supplierSystem = erpSystem.getSupplierSystem();
+        customerSystem = erpSystem.getCustomerSystem();
+        supplierImporter = new SupplierImporter(supplierSystem, customerSystem);
+        supplierSystem.start();
+        supplierSystem.beginTransaction();
     }
 
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
-        system.commit();
-        system.stop();
+        supplierSystem.commit();
+        supplierSystem.stop();
         reader.close();
     }
 
     public void test01SuppliersAreImportedCorrectly() throws Exception {
+        customerSystem.start();
+        customerSystem.beginTransaction();
+        Customer customer = new Customer();
+        customer.setFirstName("TestName");
+        customer.setIdentificationNumber("5456774");
+        customer.setIdentificationType("D");
+        customer.setLastName("TestLastName");
+        customerSystem.add(customer);
+        customerSystem.commit();
+
         reader = getValidData();
         supplierImporter.from(reader);
 
         assertSupplierWasImportedCorrectly();
+        customerSystem.stop();
     }
 
     public void test02CannotImportFromAnEmptySource() throws Exception {
@@ -73,6 +87,11 @@ public class SupplierImporterTest extends TestCase {
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_SUPPLIER_RECORD);
     }
 
+    public void test08CannotImportRecordWithInvalidRecordType() {
+        reader = new StringReader("SS,Supplier1,D,123");
+        assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_RECORD_TYPE);
+    }
+
     private void assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(String exceptionMessage) {
         try {
             supplierImporter.from(reader);
@@ -94,12 +113,12 @@ public class SupplierImporterTest extends TestCase {
     }
 
     private void assertSystemWithoutSuppliers() {
-        List<Supplier> suppliers = system.listSuppliers();
+        List<Supplier> suppliers = supplierSystem.listSuppliers();
         assertTrue(suppliers.isEmpty());
     }
 
     private void assertSupplierWasImportedCorrectly() {
-        List<Supplier> suppliers = system.listSuppliers();
+        List<Supplier> suppliers = supplierSystem.listSuppliers();
         assertEquals(1, suppliers.size());
 
         Supplier supplier = suppliers.stream().findAny().get();

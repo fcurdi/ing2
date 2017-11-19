@@ -123,7 +123,7 @@ public class CustomerImporterTest extends TestCase {
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(NO_CUSTOMER_FOR_ADDRESS);
     }
 
-    public void test04CannotImportCustomerWithInvalidRecordType() {
+    public void test04CannotImportRecordWithInvalidRecordType() {
         reader = new StringReader("AX,Pepe,Sanchez,D,22333444");
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_RECORD_TYPE);
     }
