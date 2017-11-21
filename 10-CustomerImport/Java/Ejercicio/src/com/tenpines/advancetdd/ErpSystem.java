@@ -2,20 +2,20 @@ package com.tenpines.advancetdd;
 
 public class ErpSystem {
 
-    private SupplierSystem supplierSystem;
+    private System<Supplier> supplierSystem;
 
-    private CustomerSystem customerSystem;
+    private System<Customer> customerSystem;
 
-    public ErpSystem(CustomerSystem customerSystem, SupplierSystem supplierSystem) {
+    public ErpSystem(System<Customer> customerSystem, System<Supplier> supplierSystem) {
         this.customerSystem = customerSystem;
         this.supplierSystem = supplierSystem;
     }
 
-    public SupplierSystem getSupplierSystem() {
+    public System<Supplier> getSupplierSystem() {
         return supplierSystem;
     }
 
-    public CustomerSystem getCustomerSystem() {
+    public System<Customer> getCustomerSystem() {
         return customerSystem;
     }
 }

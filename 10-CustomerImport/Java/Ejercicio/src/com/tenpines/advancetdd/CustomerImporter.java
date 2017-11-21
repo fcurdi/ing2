@@ -1,9 +1,5 @@
 package com.tenpines.advancetdd;
 
-import java.io.IOException;
-import java.io.LineNumberReader;
-import java.io.Reader;
-
 public class CustomerImporter extends Importer {
 
     public static final String INVALID_CUSTOMER_RECORD = "Invalid customer record";
@@ -11,9 +7,9 @@ public class CustomerImporter extends Importer {
     public static final String INVALID_RECORD_TYPE = "Invalid record type";
     public static final String NO_CUSTOMER_FOR_ADDRESS = "No customer for address";
     private Customer customer;
-    private CustomerSystem system;
+    private System<Customer> system;
 
-    public CustomerImporter(CustomerSystem system) {
+    public CustomerImporter(System<Customer> system) {
         this.system = system;
     }
 

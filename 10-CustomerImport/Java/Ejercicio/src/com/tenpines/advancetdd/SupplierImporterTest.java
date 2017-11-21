@@ -10,8 +10,6 @@ import static com.tenpines.advancetdd.SupplierImporter.*;
 
 public class SupplierImporterTest extends TestCase {
 
-    //TODO: No volvi a poner los tests que tienen que ver con cargar address y customers porque ya estan cubiertos
-    // en el de customerImporter.
     private Reader reader;
     private SupplierImporter supplierImporter;
     private ErpSystem erpSystem;
@@ -21,6 +19,8 @@ public class SupplierImporterTest extends TestCase {
         super.setUp();
         erpSystem = Environment.createSystem();
         supplierImporter = new SupplierImporter(erpSystem);
+        erpSystem.getCustomerSystem().start();
+        erpSystem.getCustomerSystem().beginTransaction();
         erpSystem.getSupplierSystem().start();
         erpSystem.getSupplierSystem().beginTransaction();
     }
@@ -28,22 +28,23 @@ public class SupplierImporterTest extends TestCase {
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
+        erpSystem.getCustomerSystem().commit();
+        erpSystem.getCustomerSystem().stop();
         erpSystem.getSupplierSystem().commit();
         erpSystem.getSupplierSystem().stop();
         reader.close();
     }
 
+
+    // FIXME: No anda con el persistent system. El problema es que cuando hace el start, hace un openSession()
+    // FIXME: y ya hay una session abierta por el otro sistema.
     public void test01SuppliersAreImportedCorrectly() throws Exception {
-        erpSystem.getCustomerSystem().start();
-        erpSystem.getCustomerSystem().beginTransaction();
         erpSystem.getCustomerSystem().add(new Customer("Juan", "Perez", "D", "5456774"));
-        erpSystem.getCustomerSystem().commit();
 
         reader = getValidData();
         supplierImporter.from(reader);
 
         assertSupplierWasImportedCorrectly();
-        erpSystem.getCustomerSystem().stop();
     }
 
     public void test02CannotImportFromAnEmptySource() throws Exception {
@@ -92,14 +93,23 @@ public class SupplierImporterTest extends TestCase {
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_RECORD_TYPE);
     }
 
-    private void assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(String exceptionMessage) {
+    public void test11CannotImportSupplierWithExistingCustomerIfItDoesNotReallyExist() throws Exception {
+        reader = getValidData();
+        assertExceptionIsRaisedWithMessage(CUSTOMER_DOES_NOT_EXIST);
+    }
+
+    private void assertExceptionIsRaisedWithMessage(String message) {
         try {
             supplierImporter.from(reader);
             fail();
         } catch (Exception e) {
-            assertEquals(exceptionMessage, e.getMessage());
-            assertSystemWithoutSuppliers();
+            assertEquals(message, e.getMessage());
         }
+    }
+
+    private void assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(String message) {
+        assertExceptionIsRaisedWithMessage(message);
+        assertSystemWithoutSuppliers();
     }
 
     private StringReader getValidData() {
@@ -113,12 +123,11 @@ public class SupplierImporterTest extends TestCase {
     }
 
     private void assertSystemWithoutSuppliers() {
-        List<Supplier> suppliers = erpSystem.getSupplierSystem().listSuppliers();
-        assertTrue(suppliers.isEmpty());
+        assertTrue(erpSystem.getSupplierSystem().list().isEmpty());
     }
 
     private void assertSupplierWasImportedCorrectly() {
-        List<Supplier> suppliers = erpSystem.getSupplierSystem().listSuppliers();
+        List<Supplier> suppliers = erpSystem.getSupplierSystem().list();
         assertEquals(1, suppliers.size());
 
         Supplier supplier = suppliers.stream().findAny().get();

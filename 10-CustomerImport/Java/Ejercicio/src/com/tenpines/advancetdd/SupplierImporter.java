@@ -8,6 +8,7 @@ public class SupplierImporter extends Importer {
     public static final String INVALID_SUPPLIER_RECORD = "Invalid supplier record";
     public static final String INVALID_CUSTOMER_RECORD = "Invalid customer record";
     public static final String NO_SUPPLIER_FOR_CUSTOMER = "No supplier for customer";
+    public static final String CUSTOMER_DOES_NOT_EXIST = "Customer does not exist";
     private final ErpSystem erpSystem;
     private Supplier supplier;
 
@@ -57,7 +58,11 @@ public class SupplierImporter extends Importer {
             throw new Exception(NO_SUPPLIER_FOR_CUSTOMER);
         }
 
-        Customer existingCustomer = erpSystem.getCustomerSystem().listCustomer().stream().filter(customer -> customer.getIdentificationNumber().equals(record[2])).findAny().get();//TODO: deberiamos ver si existe o no el customer?
+        Customer existingCustomer = erpSystem.getCustomerSystem().list()
+                .stream()
+                .filter(customer -> customer.getIdentificationNumber().equals(record[2]))
+                .findAny()
+                .orElseThrow(() -> new Exception(CUSTOMER_DOES_NOT_EXIST));
 
         supplier.addCustomer(existingCustomer);
     }

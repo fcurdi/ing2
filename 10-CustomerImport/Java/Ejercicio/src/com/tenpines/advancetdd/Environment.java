@@ -9,15 +9,12 @@ public abstract class Environment {
 
     protected abstract boolean isCurrent();
 
-    //TODO: rename
     protected abstract ErpSystem system();
 
-    //TODO: rename
     public static ErpSystem createSystem() {
         Environment current = environments.stream()
-                .filter((Environment::isCurrent))
-                .findFirst()
-                .orElse(new DevelopmentEnvironment());
+                .filter(Environment::isCurrent)
+                .findFirst().get();
         return current.system();
     }
 

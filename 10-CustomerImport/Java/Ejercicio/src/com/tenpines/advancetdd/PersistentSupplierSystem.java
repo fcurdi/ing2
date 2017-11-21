@@ -8,7 +8,7 @@ import org.hibernate.service.ServiceRegistryBuilder;
 
 import java.util.List;
 
-public class PersistentSupplierSystem implements SupplierSystem {
+public class PersistentSupplierSystem implements System<Supplier> {
 
    private Session session;
     private final SessionFactory sessionFactory;
@@ -46,7 +46,7 @@ public class PersistentSupplierSystem implements SupplierSystem {
     }
 
     @Override
-    public List<Supplier> listSuppliers() {
+    public List<Supplier> list() {
         return session.createCriteria(Supplier.class).list();
     }
 }

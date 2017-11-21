@@ -2,7 +2,7 @@ package com.tenpines.advancetdd;
 
 import java.util.List;
 
-public interface CustomerSystem {
+public interface System<T> {
 
     void start();
 
@@ -12,7 +12,12 @@ public interface CustomerSystem {
 
     void stop();
 
-    void add(Customer customer);
+    void add(T entity);
 
-    List<Customer> listCustomer();
+    List<T> list();
+
+
 }
+
+
+

@@ -18,7 +18,7 @@ public abstract class Importer {
         }
     }
 
-    private Boolean hasLinesToProcess() throws IOException {
+    protected Boolean hasLinesToProcess() throws IOException {
         line = lineReader.readLine();
         return line != null;
     }

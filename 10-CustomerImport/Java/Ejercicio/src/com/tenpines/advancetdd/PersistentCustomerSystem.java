@@ -8,7 +8,7 @@ import org.hibernate.service.ServiceRegistryBuilder;
 
 import java.util.List;
 
-public class PersistentCustomerSystem implements CustomerSystem {
+public class PersistentCustomerSystem implements System<Customer> {
 
     private Session session;
     private final SessionFactory sessionFactory;
@@ -46,7 +46,7 @@ public class PersistentCustomerSystem implements CustomerSystem {
     }
 
     @Override
-    public List<Customer> listCustomer() {
+    public List<Customer> list() {
         return session.createCriteria(Customer.class).list();
     }
 }

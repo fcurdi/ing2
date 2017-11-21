@@ -3,20 +3,20 @@ package com.tenpines.advancetdd;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TransientSupplierSystem implements SupplierSystem {
+public class TransientSupplierSystem implements System<Supplier> {
 
     private List<Supplier> suppliers;
 
+    @Override
+    public void start() {
+        suppliers = new ArrayList<>();
+    }
 
     @Override
     public void add(Supplier supplier) {
         suppliers.add(supplier);
     }
 
-    @Override
-    public void start() {
-        suppliers = new ArrayList<>();
-    }
 
     @Override
     public void beginTransaction() {
@@ -34,7 +34,7 @@ public class TransientSupplierSystem implements SupplierSystem {
     }
 
     @Override
-    public List<Supplier> listSuppliers() {
+    public List<Supplier> list() {
         return suppliers;
     }
 }

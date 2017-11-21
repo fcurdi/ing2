@@ -8,33 +8,9 @@ import java.util.List;
 
 import static com.tenpines.advancetdd.CustomerImporter.*;
 
-/**
- *
- * TODO: el tema del findCustomer y el tema de hacer los asserts de que es igual a otro, parte deberia
- * ser responsabilidad del customer (ver video?)
- *
- *
- * TODO: Ver mail:
- *  -poder importar suppliers.
- *  Formato de registros:
- *  NC -> new customer, trae todos los datos ya que hay que crear uno nuevo en el sistema
- *  EC -> existing customer, ya es un que existe.
- *  (Hay que asociar los customers al supplier)
- *  A,.... -> Direcciones del supplier
- *
- *
- *  ERP SYSTEM -> composicion (no es un composite) de CutomerSystem y SupplierSystem (cada uno tendra su implementacion de persistent y transient)
- *
- *  Tipo y numero de identificacion puede llegar a necesitar una abstraccion (ya que siempre los paso juntos)
- *
- *  Party (superclase), Customer (subclase), Supplier (subclase)
- *
- *  Se puede hacer una generalizacion para los dos importadores (SupplierImporter y CustomerImporter)
- */
-
 public class CustomerImporterTest extends TestCase {
 
-    private CustomerSystem system;
+    private System<Customer> system;
     private Reader reader;
     private CustomerImporter customerImporter;
 
@@ -105,7 +81,7 @@ public class CustomerImporterTest extends TestCase {
         //TODO: deberia estar dentro del findCustomers
         reader = getValidData();
         customerImporter.from(reader);
-        List<Customer> customers = system.listCustomer();
+        List<Customer> customers = system.list();
         assertEquals(2, customers.size());
 
         assertCustomerPepeSanchezWasImportedCorrectly(customers);
@@ -169,7 +145,7 @@ public class CustomerImporterTest extends TestCase {
     }
 
     private void assertSystemWithoutCustomers() {
-        List<Customer> customers = system.listCustomer();
+        List<Customer> customers = system.list();
         assertEquals(0, customers.size());
     }
 

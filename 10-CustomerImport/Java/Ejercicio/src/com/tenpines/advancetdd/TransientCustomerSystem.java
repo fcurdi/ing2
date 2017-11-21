@@ -3,10 +3,9 @@ package com.tenpines.advancetdd;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TransientCustomerSystem implements CustomerSystem {
+public class TransientCustomerSystem implements System<Customer> {
 
     private List<Customer> customers;
-
 
     @Override
     public void start() {
@@ -31,7 +30,7 @@ public class TransientCustomerSystem implements CustomerSystem {
     }
 
     @Override
-    public List<Customer> listCustomer() {
+    public List<Customer> list() {
         return customers;
     }
 }
