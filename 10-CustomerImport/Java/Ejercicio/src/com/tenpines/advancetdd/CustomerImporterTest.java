@@ -70,6 +70,9 @@ public class CustomerImporterTest extends TestCase {
         assertEquals("CABA", address.getProvince());
     }
 
+    // FIXME: Hacer clase Identification que tenga el identification type y number y usar eso en customer y supplier.
+    // FIXME: eliminar el list() de System y ofrecer un findWith(Identification identification).
+    // FIXME: y Que los customer system implementen esta busqueda. Idem con el Supplier
     private Customer findCustomerWithIdentificationNumber(List<Customer> customers, String identificationNumber) {
         return customers
                 .stream()
