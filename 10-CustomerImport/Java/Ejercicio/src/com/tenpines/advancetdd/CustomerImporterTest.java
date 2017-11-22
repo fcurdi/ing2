@@ -31,99 +31,55 @@ public class CustomerImporterTest extends TestCase {
         reader.close();
     }
 
-    private void assertCustomerPepeSanchezWasImportedCorrectly(List<Customer> customers) {
-        Customer pepeSanchez = findCustomerWithIdentificationNumber(customers, "22333444");
-
-        assertEquals("Pepe", pepeSanchez.getFirstName());
-        assertEquals("Sanchez", pepeSanchez.getLastName());
-        assertEquals("D", pepeSanchez.getIdentificationType());
-        assertEquals("22333444", pepeSanchez.getIdentificationNumber());
-
-        Address address = pepeSanchez.addressAt("San Martin");
-        assertEquals("San Martin", address.getStreetName());
-        assertEquals(3322, address.getStreetNumber());
-        assertEquals("Olivos", address.getTown());
-        assertEquals(1636, address.getZipCode());
-        assertEquals("BsAs", address.getProvince());
-
-        address = pepeSanchez.addressAt("Maipu");
-        assertEquals("Maipu", address.getStreetName());
-        assertEquals(888, address.getStreetNumber());
-        assertEquals("Florida", address.getTown());
-        assertEquals(1122, address.getZipCode());
-        assertEquals("Buenos Aires", address.getProvince());
-    }
-
-    private void assertCustomerJuanPerezWasImportedCorrectly(List<Customer> customers) {
-        Customer juanPerez = findCustomerWithIdentificationNumber(customers, "23-25666777-9");
-
-        assertEquals("Juan", juanPerez.getFirstName());
-        assertEquals("Perez", juanPerez.getLastName());
-        assertEquals("C", juanPerez.getIdentificationType());
-        assertEquals("23-25666777-9", juanPerez.getIdentificationNumber());
-
-        Address address = juanPerez.addressAt("Alem");
-        assertEquals("Alem", address.getStreetName());
-        assertEquals(1122, address.getStreetNumber());
-        assertEquals("CABA", address.getTown());
-        assertEquals(1001, address.getZipCode());
-        assertEquals("CABA", address.getProvince());
-    }
-
-    // FIXME: Hacer clase Identification que tenga el identification type y number y usar eso en customer y supplier.
-    // FIXME: eliminar el list() de System y ofrecer un findWith(Identification identification).
-    // FIXME: y Que los customer system implementen esta busqueda. Idem con el Supplier
-    private Customer findCustomerWithIdentificationNumber(List<Customer> customers, String identificationNumber) {
-        return customers
-                .stream()
-                .filter(customer -> customer.getIdentificationNumber().equals(identificationNumber))
-                .findAny().get();
-    }
-
     public void test01CustomersAreImportedCorrectly() throws Exception {
-        //TODO: deberia estar dentro del findCustomers
         reader = getValidData();
         customerImporter.from(reader);
-        List<Customer> customers = system.list();
-        assertEquals(2, customers.size());
 
-        assertCustomerPepeSanchezWasImportedCorrectly(customers);
-        assertCustomerJuanPerezWasImportedCorrectly(customers);
+        assertSystemWithNumberOfCustomers(2);
+        assertCustomerPepeSanchezWasImportedCorrectly();
+        assertCustomerJuanPerezWasImportedCorrectly();
     }
 
     public void test02CannotImportFromAnEmptySource() throws Exception {
         reader = new StringReader("");
         customerImporter.from(reader);
-        assertSystemWithoutCustomers();
+
+        assertSystemWithNumberOfCustomers(0);
     }
 
     public void test03CannotImportAddressWithoutCustomer() {
         reader = new StringReader("A,San Martin,3322,Olivos,1636,BsAs");
+
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(NO_CUSTOMER_FOR_ADDRESS);
     }
 
     public void test04CannotImportRecordWithInvalidRecordType() {
         reader = new StringReader("AX,Pepe,Sanchez,D,22333444");
+
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_RECORD_TYPE);
     }
 
     public void test05CannotImportCustomerWithLessInformationThanRequired() {
         reader = new StringReader("C,Pepe,D,22333444");
+
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_CUSTOMER_RECORD);
     }
 
     public void test06CannotImportAddressWithLessInformationThanRequired() {
         reader = new StringReader("A");
+
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_ADDRESS_RECORD);
     }
 
     public void test07CannotImportCustomerWithMoreInformationThanRequired() {
         reader = new StringReader("C,Pepe,D,22333444,1,1");
+
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_CUSTOMER_RECORD);
     }
 
     public void test08CannotImportAddressWithMoreInformationThanRequired() {
         reader = new StringReader("A,San Martin,3322,Olivos,1636,BsAs,BA");
+
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_ADDRESS_RECORD);
     }
 
@@ -133,7 +89,7 @@ public class CustomerImporterTest extends TestCase {
             fail();
         } catch (Exception e) {
             assertEquals(exceptionMessage, e.getMessage());
-            assertSystemWithoutCustomers();
+            assertSystemWithNumberOfCustomers(0);
         }
     }
 
@@ -147,9 +103,43 @@ public class CustomerImporterTest extends TestCase {
         );
     }
 
-    private void assertSystemWithoutCustomers() {
+    private void assertSystemWithNumberOfCustomers(int numberOfCustomers) {
         List<Customer> customers = system.list();
-        assertEquals(0, customers.size());
+        assertEquals(numberOfCustomers, customers.size());
+    }
+
+    private void assertCustomerPepeSanchezWasImportedCorrectly() throws Exception {
+        Identification identification = new Identification("D", "22333444");
+        Customer pepeSanchez = system.findWith(identification).orElseThrow(Exception::new);
+
+        assertEquals("Pepe", pepeSanchez.getFirstName());
+        assertEquals("Sanchez", pepeSanchez.getLastName());
+
+        Address address = pepeSanchez.addressAt("San Martin").orElseThrow(Exception::new);
+        assertEquals(3322, address.getStreetNumber());
+        assertEquals("Olivos", address.getTown());
+        assertEquals(1636, address.getZipCode());
+        assertEquals("BsAs", address.getProvince());
+
+        address = pepeSanchez.addressAt("Maipu").orElseThrow(Exception::new);
+        assertEquals(888, address.getStreetNumber());
+        assertEquals("Florida", address.getTown());
+        assertEquals(1122, address.getZipCode());
+        assertEquals("Buenos Aires", address.getProvince());
+    }
+
+    private void assertCustomerJuanPerezWasImportedCorrectly() throws Exception {
+        Identification identification = new Identification("C", "23-25666777-9");
+        Customer juanPerez = system.findWith(identification).orElseThrow(Exception::new);
+
+        assertEquals("Juan", juanPerez.getFirstName());
+        assertEquals("Perez", juanPerez.getLastName());
+
+        Address address = juanPerez.addressAt("Alem").orElseThrow(Exception::new);
+        assertEquals(1122, address.getStreetNumber());
+        assertEquals("CABA", address.getTown());
+        assertEquals(1001, address.getZipCode());
+        assertEquals("CABA", address.getProvince());
     }
 
 }

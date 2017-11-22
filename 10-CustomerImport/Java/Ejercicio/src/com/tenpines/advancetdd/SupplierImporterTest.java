@@ -35,9 +35,7 @@ public class SupplierImporterTest extends TestCase {
         reader.close();
     }
 
-
-    // FIXME: No anda con el persistent system. El problema es que cuando hace el start, hace un openSession()
-    // FIXME: y ya hay una session abierta por el otro sistema.
+    // FIXME No anda con el persistent system. El problema es que cuando hace el start, hace un openSession() y ya hay una session abierta por el otro sistema.
     public void test01SuppliersAreImportedCorrectly() throws Exception {
         erpSystem.getCustomerSystem().add(new Customer("Juan", "Perez", "D", "5456774"));
 
@@ -50,51 +48,61 @@ public class SupplierImporterTest extends TestCase {
     public void test02CannotImportFromAnEmptySource() throws Exception {
         reader = new StringReader("");
         supplierImporter.from(reader);
+
         assertSystemWithoutSuppliers();
     }
 
     public void test03CannotImportAddressWithoutSupplier() {
         reader = new StringReader("A,San Martin,3322,Olivos,1636,BsAs\n");
+
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(NO_SUPPLIER_FOR_ADDRESS);
     }
 
     public void test04CannotImportNewCustomerWithoutSupplier() {
         reader = new StringReader("NC,Pepe,Sanchez,D,22333444");
+
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(NO_SUPPLIER_FOR_CUSTOMER);
     }
 
     public void test05CannotImportExistingCustomerWithoutSupplier() {
         reader = new StringReader("EC,D,5456774");
+
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(NO_SUPPLIER_FOR_CUSTOMER);
     }
 
     public void test06CannotImportSupplierWithLessInformationThanRequired() {
         reader = new StringReader("S,Supplier1");
+
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_SUPPLIER_RECORD);
     }
 
     public void test07CannotImportSupplierWithMoreInformationThanRequired() {
         reader = new StringReader("S,Supplier1,D,123,T,56");
+
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_SUPPLIER_RECORD);
     }
 
     public void test08CannotImportSupplierWithLessInformationThanRequired() {
         reader = new StringReader("EC,D,5456774,1122");
+
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_CUSTOMER_RECORD);
     }
 
     public void test09CannotImportSupplierWithMoreInformationThanRequired() {
         reader = new StringReader("EC,D");
+
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_CUSTOMER_RECORD);
     }
 
     public void test10CannotImportRecordWithInvalidRecordType() {
         reader = new StringReader("SS,Supplier1,D,123");
+
         assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_RECORD_TYPE);
     }
 
     public void test11CannotImportSupplierWithExistingCustomerIfItDoesNotReallyExist() throws Exception {
         reader = getValidData();
+
         assertExceptionIsRaisedWithMessage(CUSTOMER_DOES_NOT_EXIST);
     }
 
@@ -126,36 +134,31 @@ public class SupplierImporterTest extends TestCase {
         assertTrue(erpSystem.getSupplierSystem().list().isEmpty());
     }
 
-    private void assertSupplierWasImportedCorrectly() {
+    private void assertSupplierWasImportedCorrectly() throws Exception {
         List<Supplier> suppliers = erpSystem.getSupplierSystem().list();
         assertEquals(1, suppliers.size());
 
-        Supplier supplier = suppliers.stream().findAny().get();
+        Identification supplierIdentification = new Identification("D", "123");
+        Supplier supplier = erpSystem.getSupplierSystem().findWith(supplierIdentification).orElseThrow(Exception::new);
         assertEquals("Supplier1", supplier.getName());
-        assertEquals("D", supplier.getIdentificationType());
-        assertEquals("123", supplier.getIdentificationNumber());
 
-        Customer pepeSanchez = supplier.customerWith("22333444");
+        Identification pepeSanchezIdentification = new Identification("D", "22333444");
+        Customer pepeSanchez = supplier.customerWith(pepeSanchezIdentification).orElseThrow(Exception::new);
         assertEquals("Pepe", pepeSanchez.getFirstName());
         assertEquals("Sanchez", pepeSanchez.getLastName());
-        assertEquals("D", pepeSanchez.getIdentificationType());
-        assertEquals("22333444", pepeSanchez.getIdentificationNumber());
 
-        Customer juanPerez = supplier.customerWith("5456774");
+        Identification juanPerezIdentification = new Identification("D", "5456774");
+        Customer juanPerez = supplier.customerWith(juanPerezIdentification).orElseThrow(Exception::new);
         assertEquals("Juan", juanPerez.getFirstName());
         assertEquals("Perez", juanPerez.getLastName());
-        assertEquals("D", juanPerez.getIdentificationType());
-        assertEquals("5456774", juanPerez.getIdentificationNumber());
 
-        Address address = supplier.addressAt("San Martin");
-        assertEquals("San Martin", address.getStreetName());
+        Address address = supplier.addressAt("San Martin").orElseThrow(Exception::new);
         assertEquals(3322, address.getStreetNumber());
         assertEquals("Olivos", address.getTown());
         assertEquals(1636, address.getZipCode());
         assertEquals("BsAs", address.getProvince());
 
-        address = supplier.addressAt("Maipu");
-        assertEquals("Maipu", address.getStreetName());
+        address = supplier.addressAt("Maipu").orElseThrow(Exception::new);
         assertEquals(888, address.getStreetNumber());
         assertEquals("Florida", address.getTown());
         assertEquals(1122, address.getZipCode());

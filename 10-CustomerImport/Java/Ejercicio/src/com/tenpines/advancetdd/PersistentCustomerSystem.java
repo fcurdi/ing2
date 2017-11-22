@@ -7,6 +7,7 @@ import org.hibernate.service.ServiceRegistry;
 import org.hibernate.service.ServiceRegistryBuilder;
 
 import java.util.List;
+import java.util.Optional;
 
 public class PersistentCustomerSystem implements System<Customer> {
 
@@ -48,5 +49,10 @@ public class PersistentCustomerSystem implements System<Customer> {
     @Override
     public List<Customer> list() {
         return session.createCriteria(Customer.class).list();
+    }
+
+    @Override
+    public Optional<Customer> findWith(Identification identification) {
+        return list().stream().filter(customer -> customer.isIdentifiedBy(identification)).findAny();
     }
 }

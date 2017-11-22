@@ -2,6 +2,7 @@ package com.tenpines.advancetdd;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class TransientSupplierSystem implements System<Supplier> {
 
@@ -36,5 +37,11 @@ public class TransientSupplierSystem implements System<Supplier> {
     @Override
     public List<Supplier> list() {
         return suppliers;
+    }
+
+    @Override
+    public Optional<Supplier> findWith(Identification identification) {
+        return suppliers.stream().filter(supplier -> supplier.isIdentifiedBy(identification)).findAny();
+
     }
 }

@@ -7,10 +7,11 @@ import org.hibernate.service.ServiceRegistry;
 import org.hibernate.service.ServiceRegistryBuilder;
 
 import java.util.List;
+import java.util.Optional;
 
 public class PersistentSupplierSystem implements System<Supplier> {
 
-   private Session session;
+    private Session session;
     private final SessionFactory sessionFactory;
 
     public PersistentSupplierSystem() {
@@ -48,5 +49,10 @@ public class PersistentSupplierSystem implements System<Supplier> {
     @Override
     public List<Supplier> list() {
         return session.createCriteria(Supplier.class).list();
+    }
+
+    @Override
+    public Optional<Supplier> findWith(Identification identification) {
+        return list().stream().filter(supplier -> supplier.isIdentifiedBy(identification)).findAny();
     }
 }

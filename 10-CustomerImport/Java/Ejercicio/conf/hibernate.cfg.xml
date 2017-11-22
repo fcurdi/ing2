@@ -55,6 +55,8 @@
         <mapping class="com.tenpines.advancetdd.Address"/>
         <mapping class="com.tenpines.advancetdd.Customer"/>
         <mapping class="com.tenpines.advancetdd.Supplier"/>
+        <mapping class="com.tenpines.advancetdd.Identification"/>
+
 
     </session-factory>
 

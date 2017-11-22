@@ -58,12 +58,8 @@ public class SupplierImporter extends Importer {
             throw new Exception(NO_SUPPLIER_FOR_CUSTOMER);
         }
 
-        Customer existingCustomer = erpSystem.getCustomerSystem().list()
-                .stream()
-                .filter(customer -> customer.getIdentificationNumber().equals(record[2]))
-                .findAny()
-                .orElseThrow(() -> new Exception(CUSTOMER_DOES_NOT_EXIST));
-
+        Identification identification = new Identification(record[1], record[2]);
+        Customer existingCustomer = erpSystem.getCustomerSystem().findWith(identification).orElseThrow(() -> new Exception(CUSTOMER_DOES_NOT_EXIST));
         supplier.addCustomer(existingCustomer);
     }
 

@@ -2,6 +2,7 @@ package com.tenpines.advancetdd;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class TransientCustomerSystem implements System<Customer> {
 
@@ -32,5 +33,10 @@ public class TransientCustomerSystem implements System<Customer> {
     @Override
     public List<Customer> list() {
         return customers;
+    }
+
+    @Override
+    public Optional<Customer> findWith(Identification identification) {
+        return customers.stream().filter(customer -> customer.isIdentifiedBy(identification)).findAny();
     }
 }

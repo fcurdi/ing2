@@ -3,8 +3,8 @@ package com.tenpines.advancetdd;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.*;
-import javax.validation.constraints.Pattern;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 @Entity
@@ -18,10 +18,10 @@ public class Customer {
     private String firstName;
     @NotEmpty
     private String lastName;
-    @Pattern(regexp = "D|C")
-    private String identificationType;
-    @NotEmpty
-    private String identificationNumber;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    private Identification identification;
+
     @OneToMany(cascade = CascadeType.ALL)
     private Set<Address> addresses;
 
@@ -33,8 +33,7 @@ public class Customer {
         this();
         this.firstName = firstName;
         this.lastName = lastName;
-        this.identificationType = identificationType;
-        this.identificationNumber = identificationNumber;
+        this.identification = new Identification(identificationType, identificationNumber);
     }
 
     public long getId() {
@@ -61,22 +60,6 @@ public class Customer {
         this.lastName = lastName;
     }
 
-    public String getIdentificationType() {
-        return identificationType;
-    }
-
-    public void setIdentificationType(String identificationType) {
-        this.identificationType = identificationType;
-    }
-
-    public String getIdentificationNumber() {
-        return identificationNumber;
-    }
-
-    public void setIdentificationNumber(String identificationNumber) {
-        this.identificationNumber = identificationNumber;
-    }
-
     public void addAddress(Address anAddress) {
         addresses.add(anAddress);
     }
@@ -85,8 +68,15 @@ public class Customer {
         return addresses;
     }
 
-    public Address addressAt(String streetName) {
-        return addresses.stream().filter(address -> address.getStreetName().equals(streetName)).findAny().get();
+    public Optional<Address> addressAt(String streetName) {
+        return addresses.stream().filter(address -> address.getStreetName().equals(streetName)).findAny();
     }
 
+    public Identification getIdentification() {
+        return identification;
+    }
+
+    public boolean isIdentifiedBy(Identification identification){
+        return this.identification.equals(identification);
+    }
 }

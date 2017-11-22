@@ -1,6 +1,7 @@
 package com.tenpines.advancetdd;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface System<T> {
 
@@ -15,6 +16,8 @@ public interface System<T> {
     void add(T entity);
 
     List<T> list();
+
+    Optional<T> findWith(Identification identification);
 
 
 }
