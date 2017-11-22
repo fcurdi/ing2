@@ -9,9 +9,9 @@ public abstract class Environment {
 
     protected abstract boolean isCurrent();
 
-    protected abstract ErpSystem system();
+    protected abstract System system();
 
-    public static ErpSystem createSystem() {
+    public static System createSystem() {
         Environment current = environments.stream()
                 .filter(Environment::isCurrent)
                 .findFirst().get();

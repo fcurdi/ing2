@@ -7,9 +7,9 @@ public class CustomerImporter extends Importer {
     public static final String INVALID_RECORD_TYPE = "Invalid record type";
     public static final String NO_CUSTOMER_FOR_ADDRESS = "No customer for address";
     private Customer customer;
-    private System<Customer> system;
+    private System system;
 
-    public CustomerImporter(System<Customer> system) {
+    public CustomerImporter(System system) {
         this.system = system;
     }
 

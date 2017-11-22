@@ -26,8 +26,7 @@ public class Identification {
 
         Identification that = (Identification) o;
 
-        if (!identificationType.equals(that.identificationType)) return false;
-        return identificationNumber.equals(that.identificationNumber);
+        return identificationType.equals(that.identificationType) && identificationNumber.equals(that.identificationNumber);
     }
 
     @Override
@@ -37,11 +36,4 @@ public class Identification {
         return result;
     }
 
-    public String getIdentificationType() {
-        return identificationType;
-    }
-
-    public String getIdentificationNumber() {
-        return identificationNumber;
-    }
 }

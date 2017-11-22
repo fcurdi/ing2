@@ -10,14 +10,14 @@ import static com.tenpines.advancetdd.CustomerImporter.*;
 
 public class CustomerImporterTest extends TestCase {
 
-    private System<Customer> system;
+    private System system;
     private Reader reader;
     private CustomerImporter customerImporter;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        system = Environment.createSystem().getCustomerSystem();
+        system = Environment.createSystem();
         customerImporter = new CustomerImporter(system);
         system.start();
         system.beginTransaction();
@@ -104,13 +104,13 @@ public class CustomerImporterTest extends TestCase {
     }
 
     private void assertSystemWithNumberOfCustomers(int numberOfCustomers) {
-        List<Customer> customers = system.list();
+        List<Customer> customers = (List<Customer>) system.listAll(Customer.class);
         assertEquals(numberOfCustomers, customers.size());
     }
 
     private void assertCustomerPepeSanchezWasImportedCorrectly() throws Exception {
         Identification identification = new Identification("D", "22333444");
-        Customer pepeSanchez = system.findWith(identification).orElseThrow(Exception::new);
+        Customer pepeSanchez = (Customer) system.findPartyWith(identification).orElseThrow(Exception::new);
 
         assertEquals("Pepe", pepeSanchez.getFirstName());
         assertEquals("Sanchez", pepeSanchez.getLastName());
@@ -130,7 +130,7 @@ public class CustomerImporterTest extends TestCase {
 
     private void assertCustomerJuanPerezWasImportedCorrectly() throws Exception {
         Identification identification = new Identification("C", "23-25666777-9");
-        Customer juanPerez = system.findWith(identification).orElseThrow(Exception::new);
+        Customer juanPerez = (Customer) system.findPartyWith(identification).orElseThrow(Exception::new);
 
         assertEquals("Juan", juanPerez.getFirstName());
         assertEquals("Perez", juanPerez.getLastName());

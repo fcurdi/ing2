@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+@Entity
 public abstract class Party {
 
     @Id
@@ -20,10 +21,6 @@ public abstract class Party {
     protected Party(String identificationType, String identificationNumber) {
         this.identification = new Identification(identificationType, identificationNumber);
         this.addresses = new HashSet<>();
-    }
-
-    public Identification getIdentification() {
-        return identification;
     }
 
     public Optional<Address> addressAt(String streetName) {

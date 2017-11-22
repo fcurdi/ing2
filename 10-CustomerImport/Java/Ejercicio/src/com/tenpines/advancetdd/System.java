@@ -3,7 +3,7 @@ package com.tenpines.advancetdd;
 import java.util.List;
 import java.util.Optional;
 
-public interface System<T> {
+public interface System {
 
     void start();
 
@@ -13,11 +13,11 @@ public interface System<T> {
 
     void stop();
 
-    void add(T entity);
+    void add(Party entity);
 
-    List<T> list();
+    List<? extends Party> listAll(Class<? extends Party> aClass);
 
-    Optional<T> findWith(Identification identification);
+    Optional<Party> findPartyWith(Identification identification);
 
 
 }

@@ -37,4 +37,5 @@ public class Supplier extends Party {
     public void addCustomer(Customer customer) {
         customers.add(customer);
     }
+
 }

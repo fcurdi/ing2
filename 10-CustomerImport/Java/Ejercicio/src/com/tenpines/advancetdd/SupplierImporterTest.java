@@ -5,6 +5,7 @@ import junit.framework.TestCase;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.tenpines.advancetdd.SupplierImporter.*;
 
@@ -12,32 +13,27 @@ public class SupplierImporterTest extends TestCase {
 
     private Reader reader;
     private SupplierImporter supplierImporter;
-    private ErpSystem erpSystem;
+    private System system;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        erpSystem = Environment.createSystem();
-        supplierImporter = new SupplierImporter(erpSystem);
-        erpSystem.getCustomerSystem().start();
-        erpSystem.getCustomerSystem().beginTransaction();
-        erpSystem.getSupplierSystem().start();
-        erpSystem.getSupplierSystem().beginTransaction();
+        system = Environment.createSystem();
+        supplierImporter = new SupplierImporter(system);
+        system.start();
+        system.beginTransaction();
     }
 
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
-        erpSystem.getCustomerSystem().commit();
-        erpSystem.getCustomerSystem().stop();
-        erpSystem.getSupplierSystem().commit();
-        erpSystem.getSupplierSystem().stop();
+        system.commit();
+        system.stop();
         reader.close();
     }
 
-    // FIXME No anda con el persistent system. El problema es que cuando hace el start, hace un openSession() y ya hay una session abierta por el otro sistema.
     public void test01SuppliersAreImportedCorrectly() throws Exception {
-        erpSystem.getCustomerSystem().add(new Customer("Juan", "Perez", "D", "5456774"));
+        system.add(new Customer("Juan", "Perez", "D", "5456774"));
 
         reader = getValidData();
         supplierImporter.from(reader);
@@ -131,15 +127,15 @@ public class SupplierImporterTest extends TestCase {
     }
 
     private void assertSystemWithoutSuppliers() {
-        assertTrue(erpSystem.getSupplierSystem().list().isEmpty());
+        assertTrue(system.listAll(Supplier.class).isEmpty());
     }
 
     private void assertSupplierWasImportedCorrectly() throws Exception {
-        List<Supplier> suppliers = erpSystem.getSupplierSystem().list();
+        List<Supplier> suppliers = (List<Supplier>) system.listAll(Supplier.class);
         assertEquals(1, suppliers.size());
 
         Identification supplierIdentification = new Identification("D", "123");
-        Supplier supplier = erpSystem.getSupplierSystem().findWith(supplierIdentification).orElseThrow(Exception::new);
+        Supplier supplier = (Supplier) system.findPartyWith(supplierIdentification).orElseThrow(Exception::new);
         assertEquals("Supplier1", supplier.getName());
 
         Identification pepeSanchezIdentification = new Identification("D", "22333444");

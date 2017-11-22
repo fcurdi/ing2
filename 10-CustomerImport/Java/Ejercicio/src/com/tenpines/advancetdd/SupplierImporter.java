@@ -9,11 +9,11 @@ public class SupplierImporter extends Importer {
     public static final String INVALID_CUSTOMER_RECORD = "Invalid customer record";
     public static final String NO_SUPPLIER_FOR_CUSTOMER = "No supplier for customer";
     public static final String CUSTOMER_DOES_NOT_EXIST = "Customer does not exist";
-    private final ErpSystem erpSystem;
+    private final System system;
     private Supplier supplier;
 
-    public SupplierImporter(ErpSystem erpSystem) {
-        this.erpSystem = erpSystem;
+    public SupplierImporter(System system) {
+        this.system = system;
     }
 
     @Override
@@ -59,7 +59,7 @@ public class SupplierImporter extends Importer {
         }
 
         Identification identification = new Identification(record[1], record[2]);
-        Customer existingCustomer = erpSystem.getCustomerSystem().findWith(identification).orElseThrow(() -> new Exception(CUSTOMER_DOES_NOT_EXIST));
+        Customer existingCustomer = (Customer) system.findPartyWith(identification).orElseThrow(() -> new Exception(CUSTOMER_DOES_NOT_EXIST));
         supplier.addCustomer(existingCustomer);
     }
 
@@ -80,7 +80,7 @@ public class SupplierImporter extends Importer {
             throw new Exception(INVALID_SUPPLIER_RECORD);
         }
         supplier = new Supplier(record[1], record[2], record[3]);
-        erpSystem.getSupplierSystem().add(supplier);
+        system.add(supplier);
     }
 
     private boolean isSupplierRecord() {
