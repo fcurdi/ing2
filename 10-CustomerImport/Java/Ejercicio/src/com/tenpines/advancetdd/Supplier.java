@@ -2,57 +2,28 @@ package com.tenpines.advancetdd;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
 @Entity
 @Table(name = "SUPPLIERS")
-public class Supplier {
-
-    @Id
-    @GeneratedValue
-    private long id;
+public class Supplier extends Party {
 
     @NotEmpty
     private String name;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    private Identification identification;
-
-    @OneToMany(cascade = CascadeType.ALL)
-    private Set<Address> addresses;
 
     @OneToMany(cascade = CascadeType.ALL)
     private Set<Customer> customers;
 
     public Supplier(String name, String identificationType, String identificationNumber) {
-        this();
+        super(identificationType, identificationNumber);
         this.name = name;
-        this.identification = new Identification(identificationType, identificationNumber);
-    }
-
-    public Supplier() {
-        addresses = new HashSet<>();
         customers = new HashSet<>();
-    }
-
-    public void addAddress(Address address) {
-        addresses.add(address);
-    }
-
-    public void addCustomer(Customer customer) {
-        customers.add(customer);
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-
-    public Optional<Address> addressAt(String streetName) {
-        return addresses.stream().filter(address -> address.getStreetName().equals(streetName)).findAny();
     }
 
     public Optional<Customer> customerWith(Identification identification) {
@@ -63,13 +34,7 @@ public class Supplier {
         return name;
     }
 
-
-    public Identification getIdentification() {
-        return identification;
+    public void addCustomer(Customer customer) {
+        customers.add(customer);
     }
-
-    public boolean isIdentifiedBy(Identification identification){
-        return this.identification.equals(identification);
-    }
-
 }
