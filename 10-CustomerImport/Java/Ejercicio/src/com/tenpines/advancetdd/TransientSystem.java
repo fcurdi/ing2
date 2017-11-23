@@ -38,7 +38,7 @@ public class TransientSystem implements System {
     }
 
     @Override
-    public Optional<Party> findPartyWith(Identification identification) {
+    public Optional<? extends Party> findPartyWith(Identification identification) {
         return storage.stream().filter(party -> party.isIdentifiedBy(identification)).findAny();
 
     }

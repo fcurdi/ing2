@@ -43,7 +43,7 @@ public class PersistentSystem implements System {
     }
 
     @Override
-    public Optional<Party> findPartyWith(Identification identification) {
-        return (Optional<Party>) listAll(Party.class).stream().filter(party -> party.isIdentifiedBy(identification)).findAny();
+    public Optional<? extends Party> findPartyWith(Identification identification) {
+        return listAll(Party.class).stream().filter(party -> party.isIdentifiedBy(identification)).findAny();
     }
 }

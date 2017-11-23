@@ -5,7 +5,6 @@ import junit.framework.TestCase;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.tenpines.advancetdd.SupplierImporter.*;
 

@@ -17,7 +17,7 @@ public interface System {
 
     List<? extends Party> listAll(Class<? extends Party> aClass);
 
-    Optional<Party> findPartyWith(Identification identification);
+    Optional<? extends Party> findPartyWith(Identification identification);
 
 
 }
