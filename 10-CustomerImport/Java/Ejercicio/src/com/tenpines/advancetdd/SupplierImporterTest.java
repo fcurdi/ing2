@@ -33,7 +33,7 @@ public class SupplierImporterTest extends TestCase {
     public void test01SuppliersAreImportedCorrectly() throws Exception {
         system.add(new Customer("Juan", "Perez", "D", "5456774"));
 
-        reader = getValidData();
+        reader = validData();
         supplierImporter.from(reader);
 
         assertSupplierWasImportedCorrectly();
@@ -95,12 +95,12 @@ public class SupplierImporterTest extends TestCase {
     }
 
     public void test11CannotImportSupplierWithExistingCustomerIfItDoesNotReallyExist() throws Exception {
-        reader = getValidData();
+        reader = validData();
 
-        assertExceptionIsRaisedWithMessage(CUSTOMER_DOES_NOT_EXIST);
+        assertImporterRaisesExceptionWithMessage(CUSTOMER_DOES_NOT_EXIST);
     }
 
-    private void assertExceptionIsRaisedWithMessage(String message) {
+    private void assertImporterRaisesExceptionWithMessage(String message) {
         try {
             supplierImporter.from(reader);
             fail();
@@ -110,11 +110,11 @@ public class SupplierImporterTest extends TestCase {
     }
 
     private void assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(String message) {
-        assertExceptionIsRaisedWithMessage(message);
+        assertImporterRaisesExceptionWithMessage(message);
         assertSystemWithoutSuppliers();
     }
 
-    private StringReader getValidData() {
+    private StringReader validData() {
         return new StringReader(
                 "S,Supplier1,D,123\n" +
                         "NC,Pepe,Sanchez,D,22333444\n" +

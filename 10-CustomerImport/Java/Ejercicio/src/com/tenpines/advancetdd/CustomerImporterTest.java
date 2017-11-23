@@ -31,7 +31,7 @@ public class CustomerImporterTest extends TestCase {
     }
 
     public void test01CustomersAreImportedCorrectly() throws Exception {
-        reader = getValidData();
+        reader = validData();
         customerImporter.from(reader);
 
         assertSystemWithNumberOfCustomers(2);
@@ -49,40 +49,40 @@ public class CustomerImporterTest extends TestCase {
     public void test03CannotImportAddressWithoutCustomer() {
         reader = new StringReader("A,San Martin,3322,Olivos,1636,BsAs");
 
-        assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(NO_CUSTOMER_FOR_ADDRESS);
+        assertNoRecordsArePersistedAndImporterRaisesExceptionWithMessage(NO_CUSTOMER_FOR_ADDRESS);
     }
 
     public void test04CannotImportRecordWithInvalidRecordType() {
         reader = new StringReader("AX,Pepe,Sanchez,D,22333444");
 
-        assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_RECORD_TYPE);
+        assertNoRecordsArePersistedAndImporterRaisesExceptionWithMessage(INVALID_RECORD_TYPE);
     }
 
     public void test05CannotImportCustomerWithLessInformationThanRequired() {
         reader = new StringReader("C,Pepe,D,22333444");
 
-        assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_CUSTOMER_RECORD);
+        assertNoRecordsArePersistedAndImporterRaisesExceptionWithMessage(INVALID_CUSTOMER_RECORD);
     }
 
     public void test06CannotImportAddressWithLessInformationThanRequired() {
         reader = new StringReader("A");
 
-        assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_ADDRESS_RECORD);
+        assertNoRecordsArePersistedAndImporterRaisesExceptionWithMessage(INVALID_ADDRESS_RECORD);
     }
 
     public void test07CannotImportCustomerWithMoreInformationThanRequired() {
         reader = new StringReader("C,Pepe,D,22333444,1,1");
 
-        assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_CUSTOMER_RECORD);
+        assertNoRecordsArePersistedAndImporterRaisesExceptionWithMessage(INVALID_CUSTOMER_RECORD);
     }
 
     public void test08CannotImportAddressWithMoreInformationThanRequired() {
         reader = new StringReader("A,San Martin,3322,Olivos,1636,BsAs,BA");
 
-        assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(INVALID_ADDRESS_RECORD);
+        assertNoRecordsArePersistedAndImporterRaisesExceptionWithMessage(INVALID_ADDRESS_RECORD);
     }
 
-    private void assertNoRecordsArePersistedAndExceptionIsRaiseWithMessage(String exceptionMessage) {
+    private void assertNoRecordsArePersistedAndImporterRaisesExceptionWithMessage(String exceptionMessage) {
         try {
             customerImporter.from(reader);
             fail();
@@ -92,7 +92,7 @@ public class CustomerImporterTest extends TestCase {
         }
     }
 
-    private StringReader getValidData() {
+    private StringReader validData() {
         return new StringReader(
                 "C,Pepe,Sanchez,D,22333444\n" +
                         "A,San Martin,3322,Olivos,1636,BsAs\n" +
