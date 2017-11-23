@@ -4,7 +4,6 @@ import junit.framework.TestCase;
 
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.List;
 
 import static com.tenpines.advancetdd.CustomerImporter.*;
 
@@ -104,8 +103,7 @@ public class CustomerImporterTest extends TestCase {
     }
 
     private void assertSystemWithNumberOfCustomers(int numberOfCustomers) {
-        List<Customer> customers = (List<Customer>) system.listAll(Customer.class);
-        assertEquals(numberOfCustomers, customers.size());
+        assertEquals(numberOfCustomers, system.listAll(Customer.class).size());
     }
 
     private void assertCustomerPepeSanchezWasImportedCorrectly() throws Exception {

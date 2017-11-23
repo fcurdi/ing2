@@ -4,7 +4,6 @@ import junit.framework.TestCase;
 
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.List;
 
 import static com.tenpines.advancetdd.SupplierImporter.*;
 
@@ -130,8 +129,7 @@ public class SupplierImporterTest extends TestCase {
     }
 
     private void assertSupplierWasImportedCorrectly() throws Exception {
-        List<Supplier> suppliers = (List<Supplier>) system.listAll(Supplier.class);
-        assertEquals(1, suppliers.size());
+        assertEquals(1, system.listAll(Supplier.class).size());
 
         Identification supplierIdentification = new Identification("D", "123");
         Supplier supplier = (Supplier) system.findPartyWith(supplierIdentification).orElseThrow(Exception::new);

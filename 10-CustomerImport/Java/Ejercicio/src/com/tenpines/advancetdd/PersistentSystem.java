@@ -38,12 +38,12 @@ public class PersistentSystem implements System {
     }
 
     @Override
-    public List<? extends Party> listAll(Class<? extends Party> aClass) {
+    public List<Party> listAll(Class<? extends Party> aClass) {
         return session.createCriteria(aClass).list();
     }
 
     @Override
-    public Optional<? extends Party> findPartyWith(Identification identification) {
+    public Optional<Party> findPartyWith(Identification identification) {
         return listAll(Party.class).stream().filter(party -> party.isIdentifiedBy(identification)).findAny();
     }
 }

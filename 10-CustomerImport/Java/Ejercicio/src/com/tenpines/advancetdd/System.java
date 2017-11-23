@@ -15,9 +15,9 @@ public interface System {
 
     void add(Party entity);
 
-    List<? extends Party> listAll(Class<? extends Party> aClass);
+    List<Party> listAll(Class<? extends Party> aClass);
 
-    Optional<? extends Party> findPartyWith(Identification identification);
+    Optional<Party> findPartyWith(Identification identification);
 
 
 }

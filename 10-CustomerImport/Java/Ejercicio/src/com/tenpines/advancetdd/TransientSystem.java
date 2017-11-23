@@ -33,12 +33,12 @@ public class TransientSystem implements System {
     }
 
     @Override
-    public List<? extends Party> listAll(Class<? extends Party> aClass) {
+    public List<Party> listAll(Class<? extends Party> aClass) {
         return storage.stream().filter(party -> party.getClass() == aClass).collect(Collectors.toList());
     }
 
     @Override
-    public Optional<? extends Party> findPartyWith(Identification identification) {
+    public Optional<Party> findPartyWith(Identification identification) {
         return storage.stream().filter(party -> party.isIdentifiedBy(identification)).findAny();
 
     }
